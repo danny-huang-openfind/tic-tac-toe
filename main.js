@@ -199,11 +199,25 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
+	const force_win = player => {
+		if ( player == "O" ) {
+			cross_timer_display.textContent = "0.0";
+		}
+		else {
+			circle_timer_display.textContent = "0.0";
+		}
+		change_play_status( false );
+		alert(`贏家是${ player }`);
+	}
+
 	const set_timer = () => {
 		circle_timer = setInterval( () => {
 			if ( !circle_timer_pause ) {
 				let current = parseFloat( circle_timer_display.textContent ) - 0.1
-				/* if current == 0 set winner to other side */
+				if ( current < 0 ) {
+					current = 0;
+					force_win("X");
+				}
 				current = Math.round( current * 10 ) / 10
 				if ( current.toString().indexOf(".") == -1 ) {
 					current = current + ".0"
@@ -215,7 +229,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		cross_timer = setInterval( () => {
 			if ( !cross_timer_pause ) {
 				let current = parseFloat( cross_timer_display.textContent ) - 0.1
-				/* if current == 0 set winner to other side */
+				if ( current < 0 ) {
+					current = 0;
+					force_win("O")
+				}
 				current = Math.round( current * 10 ) / 10
 				if ( current.toString().indexOf(".") == -1 ) {
 					current = current + ".0"
