@@ -10,15 +10,6 @@ const serial_to_data = serial => {
 	return serial;
 }
 
-const isBlank = ( x, y, gamepad ) => {
-	if ( !gamepad[ x - 1 ][ y - 1 ] ) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
 document.addEventListener("DOMContentLoaded", () => {
 	const gamepad_boxes = document.getElementsByClassName("box");
 	const start_button = document.getElementById("button-start");
@@ -44,8 +35,30 @@ document.addEventListener("DOMContentLoaded", () => {
 	let now_player = "O";
 	let playing = false;
 
+	const isBlank = ( x, y ) => {
+		if ( !virtual_gamepad[ x - 1 ][ y - 1 ] ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	const isBoardFull = () => {
+		for ( let i = 0 ; i < size * size ; ++i ) {
+			if ( !virtual_gamepad[ parseInt( i / size ) ][ parseInt( i % size ) ] ) {
+				return false
+			}
+		}
+		return true;
+	}
+
 	const set = ( x, y ) => {
+		if ( !isBlank( x, y ) ) {
+			return false;
+		}
 		virtual_gamepad[ x - 1 ][ y - 1 ] = now_player;
+		return true;
 	}
 	
 	const check_winner = ( x, y, player ) => {
@@ -56,6 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		for ( let i = 0 ; i < size ; ++i ) {
 			if ( virtual_gamepad[ x ][ i ] == player ) {
 				++same_count;
+				if ( i == size - 1 && same_count < size ) {
+					same_count = 0;
+				}
 			}
 			else {
 				if ( same_count >= 1 ) {
@@ -65,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-		if ( same_count == size ) {
+		if ( same_count >= size ) {
 			++line_count;
 			same_count = 0;
 		}
@@ -73,6 +89,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		for ( let i = 0 ; i < size ; ++i ) {
 			if ( virtual_gamepad[ i ][ y ] == player ) {
 				++same_count;
+				if ( i == size - 1 && same_count < size ) {
+					same_count = 0;
+				}
 			}
 			else {
 				if ( same_count >= 1 ) {
@@ -82,15 +101,18 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-		if ( same_count == size ) {
-			++line_count;
+		if ( same_count >= size ) {
 			same_count = 0;
+			++line_count;
 		}
 
 		if ( x == y ) {
 			for ( let i = 0 ; i < size ; ++i ) {
 				if ( virtual_gamepad[ i ][ i ] == player ) {
 					++same_count;
+					if ( i == size - 1 && same_count < size ) {
+						same_count = 0;
+					}
 				}
 				else {
 					if ( same_count >= 1 ) {
@@ -101,15 +123,18 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-		if ( same_count == size ) {
+		if ( same_count >= size ) {
 			++line_count;
 			same_count = 0;
 		}
 
-		if ( x + y == size ) {
+		if ( x + y == size - 1 ) {
 			for ( let i = 0 ; i < size ; ++i ) {
-				if ( virtual_gamepad[ i ][ size - i ] == player ) {
+				if ( virtual_gamepad[ i ][ size - 1 - i ] == player ) {
 					++same_count;
+					if ( i == size - 1 && same_count < size ) {
+						same_count = 0;
+					}
 				}
 				else {
 					if ( same_count >= 1 ) {
@@ -120,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-		if ( same_count == size ) {
+		if ( same_count >= size ) {
 			++line_count;
 			same_count = 0;
 		}
@@ -128,6 +153,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ( line_count >= 1 ) {
 			change_play_status( false );
 			alert(`贏家是${ player }`);
+		}
+		else if ( isBoardFull() ) {
+			change_play_status( false );
+			alert("平手");
 		}
 	}
 
@@ -235,8 +264,12 @@ document.addEventListener("DOMContentLoaded", () => {
 			if ( !playing ) {
 				return;
 			}
-			set( ...serial_to_data( event.target.dataset.serial ) );
-			check_winner( ...serial_to_data( event.target.dataset.serial ), now_player );
+			if ( set( ...serial_to_data( event.target.dataset.serial ) ) ) {
+				check_winner( ...serial_to_data( event.target.dataset.serial ), now_player );
+			}
+			else {
+				return;
+			}
 			if ( playing ) {
 				pause_timer( now_player );
 				if ( now_player == "O" ) {
