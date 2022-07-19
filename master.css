@@ -1,0 +1,46 @@
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+.actions {
+	margin: 10px;
+	font-size: 25px;
+}
+
+.actions > #button-reset {
+	margin-left: 12px;
+}
+
+.gamepad {
+	margin: 10px;
+	display: grid;
+	height: 150px;
+	width: 150px;
+	grid-template-columns: repeat(3, 1fr);
+	grid-template-rows: repeat(3, 1fr);
+	border: 1px solid black;
+	background-color: black;
+	gap: 1px;
+	user-select: none;
+}
+
+.gamepad > .box {
+	display: flex;
+	background-color: white;
+	justify-content: center;
+	align-items: center;
+}
+
+.informations {
+	margin: 10px;
+	font-size: 20px;
+}
+
+.informations > .time-display {
+	margin-top: 8px;
+}
+
+.informations #cross-timer {
+	margin-top: 8px;
+}
