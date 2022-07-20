@@ -288,10 +288,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		window.requestAnimationFrame( set_timer )
 	}
 
-	const clear_timer = () => {
-		
-	}
-
 	const pause_timer = player => {
 		if ( player == "O" ) {
 			circle_timer_pause = true;
