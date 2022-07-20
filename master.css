@@ -30,6 +30,11 @@ html, body {
 	background-color: white;
 	justify-content: center;
 	align-items: center;
+	color: black;
+}
+
+.gamepad > .box:before {
+	content: attr( data-player );
 }
 
 .informations {
