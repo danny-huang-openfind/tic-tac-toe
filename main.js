@@ -218,8 +218,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			box.dataset.player = ""
 		}
 
-		clearInterval( circle_timer );
-		clearInterval( cross_timer );
+		// clearInterval( circle_timer );
+		// clearInterval( cross_timer );
 		circle_timer_display.textContent = "60.0";
 		cross_timer_display.textContent = "60.0";
 		current_player_display.textContent = "";
@@ -230,8 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const change_play_status = to => {
 		if ( to ) {
 			playing = true;
-			circle_timer = window.requestAnimationFrame( set_timer )
-			cross_timer = window.requestAnimationFrame( set_timer )
+			window.requestAnimationFrame( set_timer )
 			current_player_display.textContent = "O";
 			now_player = "O";
 			gamepad_display.style.cursor = "pointer"
@@ -277,20 +276,18 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ( !cross_timer_pause ) {
 			cross_timer_progress += Date.now() - ticker;
 			if ( cross_timer_progress >= 100 ) {
-				cross_timer_current = Math.round(( cross_timer - 0.1 ) * 100 ) / 100;
+				cross_timer_current = Math.round(( cross_timer_current - 0.1 ) * 100 ) / 100;
 				if ( cross_timer_current % 1 == 0 ) {
 					cross_timer_current = cross_timer_current + ".0"
 				}
 				
 				cross_timer_text.nodeValue = cross_timer_current
-
 				cross_timer_progress = 0
 			}
 		}
 		ticker = Date.now()
 
-		circle_timer = window.requestAnimationFrame( set_timer )
-		cross_timer = window.requestAnimationFrame( set_timer )
+		window.requestAnimationFrame( set_timer )
 	}
 
 	const clear_timer = () => {
