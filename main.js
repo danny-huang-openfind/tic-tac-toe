@@ -24,12 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	let size = 3;
 
-	let virtual_gamepad = Array( size ).fill( null ).map( () => Array( size ).fill( undefined ) )
+	let virtual_gamepad = new Array( size ).fill( null ).map( () => new Array( size ).fill( undefined ) )
 
 	let now_player = "O";
 	let playing = false;
-
-
 
 	let iterator = {
 		from: 0,
@@ -347,10 +345,10 @@ document.addEventListener("DOMContentLoaded", () => {
 				else {
 					now_player = "O"
 				}
+				current_player_display.textContent = now_player
 			}
 		})
 		
-		current_player_display.textContent = now_player
 	})
 
   for ( let box of gamepad_boxes ) {
