@@ -34,6 +34,10 @@ html, body {
 	color: black;
 }
 
+.gamepad > .box.occupied {
+	cursor: default;
+}
+
 .gamepad > .box:hover:before {
 	content: var( --player );
 }

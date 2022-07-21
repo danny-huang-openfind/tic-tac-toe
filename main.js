@@ -101,8 +101,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			details.slash.flag = true;
 		}
 
-		let line_count = 0
-
 		for ( let index in virtual_gamepad[ 0 ] ) { // as same as size
 			for ( let key of Object.keys( details ) ) {
 				if ( details[ key ].flag ) {
@@ -150,10 +148,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		for ( let box of gamepad_boxes ) {
 			box.dataset.player = ""
+      box.classList.remove("occupied")
 		}
 
 		Object.keys( timer ).forEach( key => {
-			timer[ key ].display.textContent = "60.0"
+			timer[ key ].text.nodeValue = "60.0"
 		})
 		current_player_display.textContent = "";
 		start_button.disabled = false;
@@ -163,6 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const change_play_status = to => {
 		if ( to ) {
 			playing = true;
+			pause_timer("cross");
 			window.requestAnimationFrame( set_timer )
 			current_player_display.textContent = "O";
 			now_player = "O";
@@ -170,7 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			gamepad_display.style.cursor = "pointer"
 			start_button.disabled = true;
 			reset_button.disabled = false;
-			pause_timer("cross");
 		}
 		else {
 			playing = false;
@@ -223,6 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	})
 
 	reset_button.addEventListener( "click", () => {
+    // debugger;
 		change_play_status( false );
 		reset_game();
 	})
