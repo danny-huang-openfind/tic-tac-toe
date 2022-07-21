@@ -2,25 +2,27 @@ document.addEventListener("DOMContentLoaded", () => {
 	const gamepad_boxes = document.getElementsByClassName("box");
 	const start_button = document.getElementById("button-start");
 	const reset_button = document.getElementById("button-reset");
-	const circle_timer_display = document.getElementById("circle-timer").getElementsByClassName("timer")[0];
-	const cross_timer_display = document.getElementById("cross-timer").getElementsByClassName("timer")[0];
 	const current_player_display = document.getElementsByClassName("current-player")[0];
 	const gamepad_display = document.getElementsByClassName("gamepad")[0];
 
-	const circle_timer_text = document.createTextNode("60.0")
-	const cross_timer_text = document.createTextNode("60.0")
-	circle_timer_display.appendChild( circle_timer_text )
-	cross_timer_display.appendChild( cross_timer_text )
-
-	let circle_timer = undefined;
-	let cross_timer = undefined
-	let circle_timer_current = +circle_timer_text.nodeValue;
-	let cross_timer_current = +circle_timer_text.nodeValue;
-	let circle_timer_progress = 0;
-	let cross_timer_progress = 0;
-	let circle_timer_pause =  false;
-	let cross_timer_pause = false;
 	let ticker = undefined;
+
+	let timer = {
+		circle: {
+			display: document.getElementById("circle-timer").getElementsByClassName("timer")[0]
+		},
+		cross: {
+			display: document.getElementById("cross-timer").getElementsByClassName("timer")[0]
+		},
+	}
+
+	Object.keys( timer ).forEach( key => {
+		timer[ key ].progress = 0;
+		timer[ key ].pause = false;
+		timer[ key ].text = document.createTextNode("60.0")
+		timer[ key ].current = +timer[ key ].text.nodeValue
+		timer[ key ].display.appendChild( timer[ key ].text )
+	})
 
 	let size = 3;
 
@@ -29,58 +31,15 @@ document.addEventListener("DOMContentLoaded", () => {
 	let now_player = "O";
 	let playing = false;
 
-	let iterator = {
-		from: 0,
-		to: size - 1,
-
-		[Symbol.iterator]() {
-			this.current = this.from;
-			return this;
-		},
-
-		next() {
-			if ( this.current <= this.to ) {
-				return {
-					done: false,
-					value: this.current++
-				}
-			}
-			else {
-				return {
-					done: true
-				}
-			}
-		}
-	}
-
-	let pad_iterator = {
-		from: 0,
-		to: Math.pow( size, 2 ) - 1,
-
-		[Symbol.iterator]() {
-			this.current = this.from;
-			return this;
-		},
-
-		next() {
-			if ( this.current <= this.to ) {
-				return {
-					done: false,
-					value: this.current++
-				}
-			}
-			else {
-				return {
-					done: true
-				}
-			}
-		}
-	}
+	Array( size ** 2 ).fill( null ).forEach( () => {
+		let template = document.createElement( "div" )
+		template.classList.add( "box" )
+		template.dataset.player = ""
+		gamepad_display.appendChild( template )
+	})
 
 	const isBlank = ( x, y ) => {
-		// console.log( virtual_gamepad )
 		return !virtual_gamepad[ x ][ y ]
-		// return !virtual_gamepad.at( x ).at( y );
 	}
 
 	const isBoardFull = () => {
@@ -103,123 +62,99 @@ document.addEventListener("DOMContentLoaded", () => {
 		return true;
 	}
 	
-	const check_winner = ( x, y, player ) => {
-		let same_count = {
-			horizontal: 0,
-			vertical: 0,
-			slash: 0,
-			backslash: 0
-		};
+	const declare_winner = ( who, isTie ) => {
+		change_play_status( false );
+		if ( !who && !!isTie ) {
+			alert("平手")
+		}
+		else {
+			alert(`贏家是${ who }`)
+		}
 
-		let flag = {
-			horizontal: true,
-			vertical: true,
-			slash: false,
-			backslash: false
+	}
+
+	const check_winner = ( x, y, player ) => {
+		let details = {
+			horizontal: {
+				count: 0,
+				flag: true
+			},
+			vertical: {
+				count: 0,
+				flag: true
+			},
+			slash: {
+				count: 0,
+				flag: false
+			},
+			backslash: {
+				count: 0,
+				flag: false
+			}
 		}
 		
 		if ( x === y ) {
-			flag.backslash = true;
+			details.backslash.flag = true;
 		}
 
 		if ( x + y == size - 1 ) {
-			flag.slash = true;
+			details.slash.flag = true;
 		}
 
 		let line_count = 0
 
-		for ( let index of iterator ) {
-			if ( flag.horizontal ) {
-				if ( virtual_gamepad.at( x ).at( index ) == player ) {
-					++same_count.horizontal;
-					if ( index == size - 1 && same_count.horizontal < size ) {
-						same_count.horizontal = 0;
+		for ( let index in virtual_gamepad[ 0 ] ) { // as same as size
+			for ( let key of Object.keys( details ) ) {
+				if ( details[ key ].flag ) {
+					if ( virtual_gamepad[
+						key == "horizontal" 
+						? x 
+						: index
+					]
+					[
+						key == "vertical" 
+						? y 
+						: key == "slash" 
+							? size - 1 - index 
+							: index 
+					] == player ) {
+						++details[ key ].count;
+						if ( index == size - 1 && details[ key ].count < size ) {
+							details[ key ].count = 0;
+						}
 					}
-				}
-				else {
-					if ( same_count.horizontal >= 1 ) {
-						same_count.horizontal = 0;
-						flag.horizontal = false
-					}
-				}
-			}
-
-			if ( flag.vertical ) {
-				if ( virtual_gamepad[ index ][ y ] == player ) {
-					++same_count.vertical;
-					if ( index == size - 1 && same_count.vertical < size ) {
-						same_count.vertical = 0;
-					}
-				}
-				else {
-					if ( same_count.vertical >= 1 ) {
-						same_count.vertical = 0;
-						flag.vertical = false
-					}
-				}
-			}
-
-			if ( flag.backslash ) {
-				if ( virtual_gamepad[ index ][ index ] == player ) {
-					++same_count.backslash;
-					if ( index == size - 1 && same_count.backslash < size ) {
-						same_count.backslash = 0;
-					}
-				}
-				else {
-					if ( same_count.backslash >= 1 ) {
-						same_count.backslash = 0;
-						flag.backslash = false
-					}
-				}
-			}
-
-			if ( flag.slash ) {
-				if ( virtual_gamepad[ index ][ size - 1 - index ] == player ) {
-					++same_count.slash;
-					if ( index == size - 1 && same_count.slash < size ) {
-						same_count.slash = 0;
-					}
-				}
-				else {
-					if ( same_count.slash >= 1 ) {
-						same_count.slash = 0;
-						flag.slash = false
+					else {
+						if ( details[ key ].count >= 1 ) {
+							details[ key ].count = 0;
+							details[ key ].flag = false
+						}
 					}
 				}
 			}
 		}
 		
-		Object.values( same_count ).forEach( count => {
-			if ( count >= 3 ) {
-				++line_count;
+		Object.values( details ).forEach( data => {
+			if ( data.count >= 3 ) {
+				declare_winner( player )
+        return;
 			}
 		})
 		
-		if ( line_count >= 1 ) {
-			change_play_status( false );
-			alert(`贏家是${ player }`);
-		}
-		else if ( isBoardFull() ) {
-			change_play_status( false );
-			alert("平手");
+		if ( isBoardFull() ) {
+			declare_winner( undefined, true )
 		}
 	}
 
-
 	const reset_game = () => {
-		for ( let value of pad_iterator ) {
-			virtual_gamepad[ Math.trunc( value / size ) ][ value % size ] = undefined;
-		}
+		virtual_gamepad = new Array( size ).fill( null ).map( () => Array( size ).fill( undefined ) )
 
 		for ( let box of gamepad_boxes ) {
 			box.dataset.player = ""
 		}
 
-		// clearInterval( circle_timer );
-		// clearInterval( cross_timer );
-		circle_timer_display.textContent = "60.0";
-		cross_timer_display.textContent = "60.0";
+		Object.keys( timer ).forEach( key => {
+			timer[ key ].display.textContent = "60.0"
+		})
 		current_player_display.textContent = "";
 		start_button.disabled = false;
 		reset_button.disabled = true;
@@ -231,72 +166,56 @@ document.addEventListener("DOMContentLoaded", () => {
 			window.requestAnimationFrame( set_timer )
 			current_player_display.textContent = "O";
 			now_player = "O";
+			gamepad_display.style.setProperty("--player", "'O'")
 			gamepad_display.style.cursor = "pointer"
 			start_button.disabled = true;
 			reset_button.disabled = false;
-			pause_timer("X");
+			pause_timer("cross");
 		}
 		else {
 			playing = false;
+			gamepad_display.style.setProperty("--player", "")
 			gamepad_display.style.cursor = "default"
-			circle_timer_pause = true;
-			cross_timer_pause = true;
+			Object.keys( timer ).forEach( key => {
+				timer[ key ].pause = true
+			})
 		}
-	}
-
-	const force_win = player => {
-		if ( player == "O" ) {
-			cross_timer_display.textContent = "0.0";
-		}
-		else {
-			circle_timer_display.textContent = "0.0";
-		}
-		change_play_status( false );
-		alert(`贏家是${ player }`);
 	}
 
 	const set_timer = () => {
 		if ( !ticker ) {
 			ticker = Date.now()
 		}
-		if ( !circle_timer_pause ) {
-			circle_timer_progress +=  Date.now() - ticker;
-			if ( circle_timer_progress >= 100 ) {
-				circle_timer_current = Math.round(( circle_timer_current - 0.1 ) * 100 ) / 100;
-				if ( circle_timer_current % 1 == 0 ) {
-					circle_timer_current = circle_timer_current + ".0"
+
+		for ( let key of Object.keys( timer )  ) {
+			if ( !timer[ key ].pause ) {
+				timer[ key ].progress += Date.now() - ticker
+				if ( timer[ key ].progress >= 100 ) {
+					timer[ key ].current = Math.round( ( timer[ key ].current - 0.1 ) * 100 ) / 100;
+					if ( timer[ key ].current % 1 == 0 ) {
+						timer[ key ].current += ".0"
+					}
+
+					timer[ key ].text.nodeValue = timer[ key ].current
+          if ( timer[ key ].current < 0 ) {
+            declare_winner( key == "circle" ? "cross" : "circle" )
+            timer[ key ].text.nodeValue = "0.0";
+          }
+
+					timer[ key ].progress = 1
 				}
-				
-				circle_timer_text.nodeValue = circle_timer_current
-				circle_timer_progress = 0
 			}
 		}
-		if ( !cross_timer_pause ) {
-			cross_timer_progress += Date.now() - ticker;
-			if ( cross_timer_progress >= 100 ) {
-				cross_timer_current = Math.round(( cross_timer_current - 0.1 ) * 100 ) / 100;
-				if ( cross_timer_current % 1 == 0 ) {
-					cross_timer_current = cross_timer_current + ".0"
-				}
-				
-				cross_timer_text.nodeValue = cross_timer_current
-				cross_timer_progress = 0
-			}
-		}
+
 		ticker = Date.now()
 
 		window.requestAnimationFrame( set_timer )
 	}
 
 	const pause_timer = player => {
-		if ( player == "O" ) {
-			circle_timer_pause = true;
-			cross_timer_pause = false;
-		}
-		else {
-			circle_timer_pause = false;
-			cross_timer_pause = true;
-		}
+    Object.keys( timer ).forEach( key => {
+      timer[ key ].pause = ( key == player )
+    })
 	}
 
 	start_button.addEventListener( "click", () => {
@@ -320,48 +239,30 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ( !playing ) {
 			return;
 		}
-		// if ( set( x, y ) ) {
-		// 	check_winner( x, y, now_player );
-		// }
-		// else {
-		// 	return;
-		// }
+
 		Promise.resolve( set( x, y ) ).then( stat => {
 			if ( stat ) {
+				box.classList.add( "occupied" )
+				if ( !isBlank( x, y ) ) {
+					box.dataset.player = now_player;
+				}
 				check_winner( x, y, now_player );
 			}
 			else {
 				return;
 			}
 			if ( playing ) {
-				pause_timer( now_player );
+				pause_timer( now_player == "O" ? "circle" : "cross" );
 				if ( now_player == "O" ) {
 					now_player = "X"
+					gamepad_display.style.setProperty("--player", JSON.stringify( now_player ))
 				}
 				else {
 					now_player = "O"
+					gamepad_display.style.setProperty("--player", JSON.stringify( now_player ))
 				}
 				current_player_display.textContent = now_player
 			}
-		})
-		
+		})		
 	})
-
-  for ( let box of gamepad_boxes ) {
-		let index = Array.from( box.parentNode.children ).indexOf( box )
-		let x = Math.trunc( index / size )
-		let y = index % size
-
-		box.addEventListener( "mouseenter", event => {
-			if ( isBlank( x, y ) && playing ) {
-				event.target.dataset.player = now_player
-			}
-		})
-
-		box.addEventListener( "mouseleave", event => {
-			if ( isBlank( x, y ) && playing ) {
-				event.target.dataset.player = ""
-			}
-		})
-	}
 });

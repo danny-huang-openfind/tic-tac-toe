@@ -13,6 +13,7 @@ html, body {
 }
 
 .gamepad {
+	--player: "";
 	margin: 10px;
 	display: grid;
 	height: 150px;
@@ -33,8 +34,12 @@ html, body {
 	color: black;
 }
 
-.gamepad > .box:before {
-	content: attr( data-player );
+.gamepad > .box:hover:before {
+	content: var( --player );
+}
+
+.gamepad > .box.occupied:before {
+	content: attr( data-player ) !important;
 }
 
 .informations {
