@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	const reset_button = document.getElementById("button-reset");
 	const current_player_display = document.getElementsByClassName("current-player")[0];
 	const gamepad_display = document.getElementsByClassName("gamepad")[0];
+	
+	[ start_button.disabled, reset_button.disabled ] = [ false, true ]
 
 	let ticker = undefined;
 
@@ -38,10 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		gamepad_display.appendChild( template )
 	})
 
-	const isBlank = ( x, y ) => {
-		return !virtual_gamepad[ x ][ y ]
-	}
-
 	const isBoardFull = () => {
 		let flag = true
 		virtual_gamepad.forEach( row => row.forEach(
@@ -55,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	const set = ( x, y ) => {
-		if ( !isBlank( x, y ) ) {
+		if ( virtual_gamepad[ x ][ y ] ) {
 			return false;
 		}
 		virtual_gamepad[ x ][ y ] = now_player;
@@ -64,13 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	
 	const declare_winner = ( who, isTie ) => {
 		change_play_status( false );
-		if ( !who && !!isTie ) {
-			alert("平手")
-		}
-		else {
-			alert(`贏家是${ who }`)
-		}
-
+		!who && !!isTie ? alert("平手") : alert(`贏家是${ who }`)
 	}
 
 	const check_winner = ( x, y, player ) => {
@@ -117,6 +109,10 @@ document.addEventListener("DOMContentLoaded", () => {
 							: index 
 					] == player ) {
 						++details[ key ].count;
+						if ( details[ key ].count === size ) {
+							declare_winner( player )
+							return
+						}
 						if ( index == size - 1 && details[ key ].count < size ) {
 							details[ key ].count = 0;
 						}
@@ -131,14 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 		
-		Object.values( details ).forEach( data => {
-			if ( data.count >= 3 ) {
-				declare_winner( player )
-        return;
-			}
-		})
-		
-		if ( isBoardFull() ) {
+		if ( isBoardFull() && playing ) {
 			declare_winner( undefined, true )
 		}
 	}
@@ -155,8 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			timer[ key ].text.nodeValue = "60.0"
 		})
 		current_player_display.textContent = "";
-		start_button.disabled = false;
-		reset_button.disabled = true;
+		[ start_button.disabled, reset_button.disabled ] = [ reset_button.disabled, start_button.disabled ]
 	}
 	
 	const change_play_status = to => {
@@ -168,15 +156,17 @@ document.addEventListener("DOMContentLoaded", () => {
 			now_player = "O";
 			gamepad_display.style.setProperty("--player", "'O'")
 			gamepad_display.style.cursor = "pointer"
-			start_button.disabled = true;
-			reset_button.disabled = false;
+			debugger
+			[ start_button.disabled, reset_button.disabled ] = [ reset_button.disabled, start_button.disabled ]
 		}
 		else {
 			playing = false;
 			gamepad_display.style.setProperty("--player", "")
 			gamepad_display.style.cursor = "default"
+			ticker = undefined
 			Object.keys( timer ).forEach( key => {
 				timer[ key ].pause = true
+				timer[ key ].current = ( 60 ).toFixed( 1 )
 			})
 		}
 	}
@@ -190,18 +180,15 @@ document.addEventListener("DOMContentLoaded", () => {
 			if ( !timer[ key ].pause ) {
 				timer[ key ].progress += Date.now() - ticker
 				if ( timer[ key ].progress >= 100 ) {
-					timer[ key ].current = Math.round( ( timer[ key ].current - 0.1 ) * 100 ) / 100;
-					if ( timer[ key ].current % 1 == 0 ) {
-						timer[ key ].current += ".0"
-					}
+					timer[ key ].current = ( timer[ key ].current - 0.1 ).toFixed(1)
 
 					timer[ key ].text.nodeValue = timer[ key ].current
           if ( timer[ key ].current < 0 ) {
-            declare_winner( key == "circle" ? "cross" : "circle" )
+            declare_winner( key == "circle" ? "X" : "O" )
             timer[ key ].text.nodeValue = "0.0";
           }
 
-					timer[ key ].progress = 1
+					timer[ key ].progress = 0
 				}
 			}
 		}
@@ -222,7 +209,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	})
 
 	reset_button.addEventListener( "click", () => {
-    // debugger;
 		change_play_status( false );
 		reset_game();
 	})
@@ -233,34 +219,24 @@ document.addEventListener("DOMContentLoaded", () => {
 		let x = Math.trunc( index / size )
 		let y = index % size
 
-		if ( !box ) {
-			return;
-		}
-		if ( !playing ) {
+		if ( !box || !playing ) {
 			return;
 		}
 
 		Promise.resolve( set( x, y ) ).then( stat => {
 			if ( stat ) {
 				box.classList.add( "occupied" )
-				if ( !isBlank( x, y ) ) {
-					box.dataset.player = now_player;
-				}
+				box.dataset.player = now_player;
 				check_winner( x, y, now_player );
 			}
 			else {
 				return;
 			}
+			
 			if ( playing ) {
 				pause_timer( now_player == "O" ? "circle" : "cross" );
-				if ( now_player == "O" ) {
-					now_player = "X"
-					gamepad_display.style.setProperty("--player", JSON.stringify( now_player ))
-				}
-				else {
-					now_player = "O"
-					gamepad_display.style.setProperty("--player", JSON.stringify( now_player ))
-				}
+				now_player = now_player == "O" ? "X" : "O"
+				gamepad_display.style.setProperty("--player", JSON.stringify( now_player ))
 				current_player_display.textContent = now_player
 			}
 		})		
