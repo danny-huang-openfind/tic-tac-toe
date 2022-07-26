@@ -38,7 +38,11 @@ html, body {
   cursor: default;
 }
 
-#gamepad > .box:hover:before {
+#gamepad.deactivated > .box:hover:before {
+  content: ""
+}
+
+#gamepad.activated > .box:hover:before {
   content: var( --player );
 }
 

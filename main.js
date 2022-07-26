@@ -23,12 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   Object.keys( timer ).forEach( key => {
     timer[ key ] = {
-    ...timer[ key ],
-    ...Object.fromEntries([
-      [ "progress", 0 ],
-      [ "text", document.createTextNode("60.0") ],
-      [ "current", ( 60 ).toFixed( 1 ) ]
-    ])}
+      ...timer[ key ],
+      ...Object.fromEntries([
+        [ "progress", 0 ],
+        [ "text", document.createTextNode("60.0") ],
+        [ "current", ( 60 ).toFixed( 1 ) ]
+      ])
+    }
     timer[ key ].display.appendChild( timer[ key ].text ) 
   })
   // #endregion
@@ -148,13 +149,16 @@ document.addEventListener("DOMContentLoaded", () => {
       now_player = "O";
       gamepad_display.style.setProperty("--player", "'O'")
       gamepad_display.style.cursor = "pointer"
-      [ start_button.disabled, reset_button.disabled ] = [ true, false ]
+      gamepad_display.classList.add("activated")
+      gamepad_display.classList.remove("deactivated")
       renderUI()
     }
     else {
       playing = false;
       gamepad_display.style.setProperty("--player", "")
       gamepad_display.style.cursor = "default"
+      gamepad_display.classList.add("deactivated")
+      gamepad_display.classList.remove("activated")
       ticker = undefined
       Object.keys( timer ).forEach( key => {
         timer[ key ].pause = true
