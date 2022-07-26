@@ -12,7 +12,7 @@ html, body {
   margin-left: 12px;
 }
 
-.gamepad {
+#gamepad {
   --player: "";
   margin: 10px;
   display: grid;
@@ -26,7 +26,7 @@ html, body {
   user-select: none;
 }
 
-.gamepad > .box {
+#gamepad > .box {
   display: flex;
   background-color: white;
   justify-content: center;
@@ -34,15 +34,15 @@ html, body {
   color: black;
 }
 
-.gamepad > .box.occupied {
+#gamepad > .box.occupied {
   cursor: default;
 }
 
-.gamepad > .box:hover:before {
+#gamepad > .box:hover:before {
   content: var( --player );
 }
 
-.gamepad > .box.occupied:before {
+#gamepad > .box.occupied:before {
   content: attr( data-player ) !important;
 }
 

@@ -1,37 +1,49 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // #region Get Elements' Controller
   const gamepad_boxes = document.getElementsByClassName("box");
-  const start_button = document.getElementById("button-start");
-  const reset_button = document.getElementById("button-reset");
-  const current_player_display = document.getElementsByClassName("current-player")[0];
-  const gamepad_display = document.getElementsByClassName("gamepad")[0];
-  
-  [ start_button.disabled, reset_button.disabled ] = [ false, true ]
+  const [
+          start_button, reset_button,
+          current_player_display,
+          gamepad_display
+        ] = [
+          "button-start",
+          "button-reset",
+          "current-player",
+          "gamepad"
+        ].map( id => document.getElementById( id ) )
 
   let ticker = undefined;
 
-  let timer = {
-    circle: {
-      display: document.getElementById("circle-timer").getElementsByClassName("timer")[0]
-    },
-    cross: {
-      display: document.getElementById("cross-timer").getElementsByClassName("timer")[0]
-    },
-  }
+  let timer = [ "circle", "cross" ].reduce(
+    ( result, currentKey ) => ({
+      ...result,
+      [ currentKey ]: { display: document.getElementById(`${ currentKey }-timer`).getElementsByClassName("timer")[ 0 ] }
+    })
+  , {})
 
   Object.keys( timer ).forEach( key => {
-    timer[ key ].progress = 0;
-    timer[ key ].pause = false;
-    timer[ key ].text = document.createTextNode("60.0")
-    timer[ key ].current = +timer[ key ].text.nodeValue
-    timer[ key ].display.appendChild( timer[ key ].text )
+    timer[ key ] = {
+    ...timer[ key ],
+    ...Object.fromEntries([
+      [ "progress", 0 ],
+      [ "text", document.createTextNode("60.0") ],
+      [ "current", ( 60 ).toFixed( 1 ) ]
+    ])}
+    timer[ key ].display.appendChild( timer[ key ].text ) 
   })
+  // #endregion
 
+  // #region Global Variables
   let size = 3;
 
   let virtual_gamepad = new Array( size ).fill( null ).map( () => new Array( size ).fill( undefined ) )
 
   let now_player = "O";
   let playing = false;
+  // #endregion
+
+  // #region UI Initialization
+  [ start_button.disabled, reset_button.disabled ] = [ false, true ]
 
   Array( size ** 2 ).fill( null ).forEach( () => {
     let template = document.createElement( "div" )
@@ -39,17 +51,11 @@ document.addEventListener("DOMContentLoaded", () => {
     template.dataset.player = ""
     gamepad_display.appendChild( template )
   })
+  // #endregion
 
+  // #region Utilities
   const isBoardFull = () => {
-    let flag = true
-    virtual_gamepad.every( row => row.every(
-      element => {
-        if ( !element ) {
-          flag = false
-        }
-      }
-    ))
-    return flag;
+    virtual_gamepad.every( row => row.every( element => Boolean( element ) ))
   }
 
   const set = ( x, y ) => {
@@ -62,66 +68,45 @@ document.addEventListener("DOMContentLoaded", () => {
   
   const declare_winner = ( who, isTie ) => {
     change_play_status( false );
-    !who && !!isTie ? alert("平手") : alert(`贏家是${ who }`)
+
+    requestAnimationFrame( () => {
+      setTimeout( () => {
+        !who && !!isTie ? alert("平手") : alert(`贏家是${ who }`)  
+      })
+    })
   }
 
   const check_winner = ( x, y, player ) => {
-    let details = {
-      horizontal: {
-        count: 0,
-        flag: true
-      },
-      vertical: {
-        count: 0,
-        flag: true
-      },
-      slash: {
-        count: 0,
-        flag: false
-      },
-      backslash: {
-        count: 0,
-        flag: false
-      }
-    }
-    
-    if ( x === y ) {
-      details.backslash.flag = true;
-    }
-
-    if ( x + y == size - 1 ) {
-      details.slash.flag = true;
-    }
+    let details = [ "horizontal", "vertical", "slash", "backslash" ].reduce(
+      ( result, currentKey ) => ({ ...result, [ currentKey ]: { count: 0 } }), {}
+    )
 
     for ( let index in virtual_gamepad[ 0 ] ) { // as same as size
       for ( let key of Object.keys( details ) ) {
-        if ( details[ key ].flag ) {
-          if ( virtual_gamepad[
-            key == "horizontal" 
-            ? x 
-            : index
-          ]
-          [
-            key == "vertical" 
-            ? y 
-            : key == "slash" 
-              ? size - 1 - index 
-              : index 
-          ] == player ) {
-            ++details[ key ].count;
-            if ( details[ key ].count === size ) {
-              declare_winner( player )
-              return
-            }
-            if ( index == size - 1 && details[ key ].count < size ) {
-              details[ key ].count = 0;
-            }
+        if ( virtual_gamepad[
+          key == "horizontal" 
+          ? x 
+          : index
+        ]
+        [
+          key == "vertical" 
+          ? y 
+          : key == "slash" 
+            ? size - 1 - index 
+            : index 
+        ] == player ) {
+          ++details[ key ].count;
+          if ( details[ key ].count === size ) {
+            declare_winner( player )
+            return
           }
-          else {
-            if ( details[ key ].count >= 1 ) {
-              details[ key ].count = 0;
-              details[ key ].flag = false
-            }
+          if ( index == size - 1 && details[ key ].count < size ) {
+            details[ key ].count = 0;
+          }
+        }
+        else {
+          if ( details[ key ].count >= 1 ) {
+            details[ key ].count = 0;
           }
         }
       }
@@ -156,7 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
       now_player = "O";
       gamepad_display.style.setProperty("--player", "'O'")
       gamepad_display.style.cursor = "pointer"
-      debugger
       [ start_button.disabled, reset_button.disabled ] = [ reset_button.disabled, start_button.disabled ]
     }
     else {
@@ -170,27 +154,26 @@ document.addEventListener("DOMContentLoaded", () => {
       })
     }
   }
+  // #endregion
 
+  // #region Timer Related
   const set_timer = () => {
+    let current_player = now_player === "O" ? "circle" : "cross"
+
     if ( !ticker ) {
       ticker = Date.now()
     }
 
-    for ( let key of Object.keys( timer )  ) {
-      if ( !timer[ key ].pause ) {
-        timer[ key ].progress += Date.now() - ticker
-        if ( timer[ key ].progress >= 100 ) {
-          timer[ key ].current = ( timer[ key ].current - 0.1 ).toFixed(1)
+    timer[ current_player ].progress += Date.now() - ticker
+    if ( timer[ current_player ].progress >= 100 ) {
+      timer[ current_player ].current = ( timer[ current_player ].current - 0.1 ).toFixed(1)
 
-          timer[ key ].text.nodeValue = timer[ key ].current
-          if ( timer[ key ].current < 0 ) {
-            declare_winner( key == "circle" ? "X" : "O" )
-            timer[ key ].text.nodeValue = "0.0";
-          }
-
-          timer[ key ].progress = 0
-        }
+      timer[ current_player ].text.nodeValue = timer[ current_player ].current
+      if ( timer[ current_player ].current == 0 ) {
+        declare_winner( current_player == "circle" ? "X" : "O" )
       }
+
+      timer[ current_player ].progress = 0
     }
 
     ticker = Date.now()
@@ -203,7 +186,9 @@ document.addEventListener("DOMContentLoaded", () => {
       timer[ key ].pause = ( key == player )
     })
   }
+  // #endregion
 
+  // #region EventListener settings
   start_button.addEventListener( "click", () => {
     change_play_status( true );
   })
@@ -239,6 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gamepad_display.style.setProperty("--player", JSON.stringify( now_player ))
         current_player_display.textContent = now_player
       }
-    })		
+    })
   })
+  // #endregion	
 });
