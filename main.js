@@ -43,7 +43,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // #endregion
 
   // #region UI Initialization
-  [ start_button.disabled, reset_button.disabled ] = [ false, true ]
+  const renderUI = () => {
+    start_button.disabled = playing
+    reset_button.disabled = !playing
+    gamepad_display.style.setProperty("--player", JSON.stringify( now_player ))
+  }
+
+  renderUI()
 
   Array( size ** 2 ).fill( null ).forEach( () => {
     let template = document.createElement( "div" )
@@ -54,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // #endregion
 
   // #region Utilities
+
   const isBoardFull = () => {
     virtual_gamepad.every( row => row.every( element => Boolean( element ) ))
   }
@@ -129,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
       timer[ key ].text.nodeValue = "60.0"
     })
     current_player_display.textContent = "";
-    [ start_button.disabled, reset_button.disabled ] = [ reset_button.disabled, start_button.disabled ]
+    renderUI()
   }
   
   const change_play_status = to => {
@@ -141,7 +148,8 @@ document.addEventListener("DOMContentLoaded", () => {
       now_player = "O";
       gamepad_display.style.setProperty("--player", "'O'")
       gamepad_display.style.cursor = "pointer"
-      [ start_button.disabled, reset_button.disabled ] = [ reset_button.disabled, start_button.disabled ]
+      [ start_button.disabled, reset_button.disabled ] = [ true, false ]
+      renderUI()
     }
     else {
       playing = false;
@@ -162,6 +170,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if ( !ticker ) {
       ticker = Date.now()
+    }
+
+    if ( !playing ) {
+      return
     }
 
     timer[ current_player ].progress += Date.now() - ticker
@@ -221,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if ( playing ) {
         pause_timer( now_player == "O" ? "circle" : "cross" );
         now_player = now_player == "O" ? "X" : "O"
-        gamepad_display.style.setProperty("--player", JSON.stringify( now_player ))
+        renderUI()
         current_player_display.textContent = now_player
       }
     })
