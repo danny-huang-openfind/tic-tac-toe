@@ -47,18 +47,17 @@ document.addEventListener( "DOMContentLoaded", () => {
   }
 
   function createElements( tag, length, classes = [] ) {
-    let template = document.createElement( tag )
-    template.classList.add( ...classes )
-    return createMappedArray( length, () => { return template } )
+    return createMappedArray( length, () => {
+      let template = document.createElement( tag )
+      template.classList.add( ...classes )
+      return template
+    })
   }
   // #endregion
 
   // #region Initialization
   function init() {
-    const boxes = createElements("div", BOARD_SIZE ** 2, [ "bg--white", "d-flex", "justify-center", "items-center" ])
-    for ( const box of boxes ) {
-      gamepad.appendChild( box )
-    }
+    gamepad.append( ...createElements( "div", BOARD_SIZE ** 2, [ "bg--white", "d-flex", "justify-center", "items-center" ] ) )
   }
 
   init()
