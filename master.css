@@ -1,0 +1,70 @@
+/* Root Element */
+:root {
+  --play-state: "INITIAL"
+}
+
+/* Functional Part */
+.bg--white {
+  background-color: white;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.d-flex.justify-center {
+  justify-content: center;
+}
+
+.d-flex.items-center {
+  align-items: center;
+}
+
+.d-grid {
+  display: grid;
+}
+
+.d-grid.gridline--black {
+  gap: 1px;
+  background-color: black;
+  border: 1px black solid;
+}
+
+.d-grid.grid-row-3 {
+  grid-template-rows: repeat( 3, 1fr )
+}
+
+.d-grid.grid-col-3 {
+  grid-template-columns: repeat( 3, 1fr )
+}
+
+.title {
+  font-size: 1.25rem;
+}
+
+.ml-1 {
+  margin-left: 0.25rem;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+/* Targeted Part */
+
+#gamepad {
+  height: 150px;
+  width: 150px;
+}
