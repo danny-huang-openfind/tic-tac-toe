@@ -1,12 +1,13 @@
 // #region Contstants
-const TOTAL_TIME = 60 * 1000
+const MILLI_PER_SECOND = 1000
+const TOTAL_TIME = 60 * MILLI_PER_SECOND
 const DECIMAL_DIGITS = 1
 const STATES = ["INITIAL", "PLAYING", "FINISHED"].reduce( ( result, currentKey ) => ({ ...result, [ currentKey ]: currentKey }), {})
 const BLANK_PLAYER = ""
-const BLANK_PLAYER_INDEX = 0
+// const BLANK_PLAYER_INDEX = 0
 const [ BOARD_SIZE, WIN_LINE_LENGTH, _PLAYERS ] = [ 3, 3, [ "O", "X" ] ]
 const PLAYERS = [ BLANK_PLAYER, ..._PLAYERS ];
-const PLAYER_INDEXES = [ BLANK_PLAYER_INDEX, ...Array.from( Array( _PLAYERS.length ).keys() ).map( index => index + 1 ) ]
+// const PLAYER_INDEXES = [ BLANK_PLAYER_INDEX, ...Array.from( Array( _PLAYERS.length ).keys() ).map( index => index + 1 ) ]
 // #endregion
 
 // #region Document Ready
@@ -14,16 +15,15 @@ document.addEventListener( "DOMContentLoaded", () => {
   // #region Get Elements' Controller
   const [ actions, gamepad, info ] = [ "actions", "gamepad", "info" ].map( id => document.getElementById( id ) )
   const current_player_display = info.children.current.children[ 0 ]
-  const timer_elements = PLAYER_INDEXES.reduce( 
-    ( result, index ) => ({
+  const timer_elements = PLAYERS.reduce( 
+    ( result, player, index ) => ({
       ...result,
-      [ PLAYERS[ index ] ]: {
+      [ player ]: {
         name_display: info.children.timer.children[ index - 1 ].children[ 0 ],
         time_display: info.children.timer.children[ index - 1 ].children[ 1 ] 
       }
     })
   )
-  console.log( current_player_display )
   const buttons = [ "start", "reset" ].reduce(
     ( result, name, index ) => ({
       ...result,
@@ -31,6 +31,37 @@ document.addEventListener( "DOMContentLoaded", () => {
     }),
     {}
   )
+  // #endregion
+
+  // #region Global Variables
+  let timer = PLAYERS.map( () => TOTAL_TIME )
+  let board = createMappedArray( BOARD_SIZE, () => Array( BOARD_SIZE ).fill( null ) )
+  let current_player_index = 0
+  let state = STATES.INITIAL
+  let ticker = null
+  // #endregion
+
+  // #region Utilities
+  function createMappedArray( size, mapped_method ) {
+    return [ ...Array( size ) ].map( mapped_method )
+  }
+
+  function createElements( tag, length, classes = [] ) {
+    let template = document.createElement( tag )
+    template.classList.add( ...classes )
+    return createMappedArray( length, () => { return template } )
+  }
+  // #endregion
+
+  // #region Initialization
+  function init() {
+    const boxes = createElements("div", BOARD_SIZE ** 2, [ "bg--white", "d-flex", "justify-center", "items-center" ])
+    for ( const box of boxes ) {
+      gamepad.appendChild( box )
+    }
+  }
+
+  init()
   // #endregion
 })
 // #endregion
