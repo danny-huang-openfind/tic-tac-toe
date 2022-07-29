@@ -1,9 +1,11 @@
-/* Root Element */
-:root {
-  --play-state: "INITIAL"
+/* #region Root Element */
+:root[ data-state="PLAYING" ] #gamepad > div {
+  pointer-events: auto;
 }
 
-/* Functional Part */
+/* #endregion */
+
+/* #region Functional Part */
 .bg--white {
   background-color: white;
 }
@@ -61,10 +63,34 @@
 .mt-2 {
   margin-top: 0.5rem;
 }
+/* endregion */
 
-/* Targeted Part */
+/* #region Targeted Part */
 
 #gamepad {
   height: 150px;
   width: 150px;
 }
+
+#gamepad > div {
+  pointer-events: none;
+  cursor: pointer
+}
+
+#current::after, #gamepad > div:hover::before {
+  content: var( --player-now ); 
+}
+
+#gamepad > div.occupied::before {
+  content: attr( data-player )
+}
+
+#timer > div:nth-child( 1 ):before {
+  content: var( --player-0 )
+}
+
+#timer > div:nth-child( 2 ):before {
+  content: var( --player-1 )
+}
+
+/* #endregion */

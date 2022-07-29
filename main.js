@@ -13,15 +13,12 @@ const PLAYERS = [ BLANK_PLAYER, ..._PLAYERS ];
 // #region Document Ready
 document.addEventListener( "DOMContentLoaded", () => {
   // #region Get Elements' Controller
+  const rootElement = document.documentElement
   const [ actions, gamepad, info ] = [ "actions", "gamepad", "info" ].map( id => document.getElementById( id ) )
-  const current_player_display = info.children.current.children[ 0 ]
   const timer_elements = PLAYERS.reduce( 
     ( result, player, index ) => ({
       ...result,
-      [ player ]: {
-        name_display: info.children.timer.children[ index - 1 ].children[ 0 ],
-        time_display: info.children.timer.children[ index - 1 ].children[ 1 ] 
-      }
+      [ player ]: info.children.timer.children[ index - 1 ].children[ 0 ] 
     })
   )
   const buttons = [ "start", "reset" ].reduce(
@@ -53,11 +50,159 @@ document.addEventListener( "DOMContentLoaded", () => {
       return template
     })
   }
+
+  function getOpponentIndex( now_index ) {
+    return 3 - now_index
+  }
+
+  function randomPlayer( players_count ) {
+    return Math.floor( Math.random() * +players_count + 1 )
+  }
+  // #endregion
+
+  // #region Game Actions
+  function startGame() {
+    state = STATES.PLAYING
+    current_player_index = randomPlayer( PLAYERS.length - 1 )
+
+    rerender()
+
+    countDown()
+  }
+
+  function resetGame() {
+
+  }
+
+  function setPiece( [ x, y ], player_index ) {
+    board[ x ][ y ] = PLAYERS[ player_index ]
+    gamepad.children[ BOARD_SIZE * x + y ].dataset.player = PLAYERS[ player_index ]
+  }
+
+  function checkResult() {
+    
+  }
+  
+  function trace( position, direction, count = 0 ) {
+    if ( checkLine( position, direction, current ) ) {
+      return true
+    }
+    if ( position.includes( 0 ) || position.includes( BOARD_SIZE - 1 ) ) {
+      if ( count > 0 ) {
+        return false
+      }
+      else {
+        position = position.map( ( element, index ) => element + ( -count + 1 ) * direction[ index ] )
+        return trace( position, direction, count < 0 ? 1 : --count )
+      }
+    }
+    else {
+      position = position.map( ( element, index ) => element + ( count > 0 ? 1 : -1 ) * direction[ index ] )
+      return trace( position, direction, count > 0 ? ++count : --count )
+    }
+  }
+
+  function checkLine( [ x, y ], direction, player ) {
+    count = 0
+    while( count < line ) {
+      if ( board?.[ x ]?.[ y ] !== player ) {
+        return false
+      }
+      ++count;
+      [ x, y ] = [ x, y ].map( ( element, index ) => element + direction[ index ] )
+    }
+    return true
+  }
+
+  function countDown() {
+    if ( state !== STATES.PLAYING || !timerUpdateAndCheck() ) {
+      return
+    }
+
+    requestAnimationFrame( countDown )
+  }
+
+  function declareWinner( player ) {
+    state = STATES.FINISHED
+    rerender()
+
+    requestAnimationFrame( () => {
+      setTimeout( () => {
+        const message = player ? `贏家是${ PLAYERS[ current_player_index ] }` : "平手"
+        alert( message )
+      })
+    })
+  }
+  // #endregion
+
+  // #region UI rendering
+  
+  function rerender() {
+    buttons.start.disabled = [ STATES.PLAYING, STATES.FINISHED ].includes( state )
+    buttons.reset.disabled = ( state === STATES.INITIAL )
+    rootElement.dataset.state = state
+    rootElement.style.setProperty( "--player-now", `"${ PLAYERS[ current_player_index ] }"` )
+  }
+
+  function timerUpdateAndCheck() {
+    const now = Date.now()
+
+    if ( ticker ) {
+      setTimer( current_player_index, timer[ current_player_index ] - ( now - ticker ) )
+    }
+
+    if ( timer[ current_player_index ] === 0 ) {
+      declareWinner( getOpponentIndex( current_player_index ) )
+
+      return false
+    }
+
+    ticker = now
+
+    return true
+  }
+
+  function setTimer( player, time ) {
+    if ( !player ) {
+      return
+    }
+
+    const valid_time = Math.max( time, 0 )
+    timer[ player ] = time
+    timer_elements[ player ].textContent = ( valid_time / MILLI_PER_SECOND ).toFixed( DECIMAL_DIGITS )
+  }
+
   // #endregion
 
   // #region Initialization
+  function eventInitialize() {
+    buttons.start.addEventListener( "click", startGame )
+    buttons.reset.addEventListener( "click", resetGame )
+
+    gamepad.addEventListener( "click", ({ target }) => {
+      const box = target.closest("div")
+      const index = Array.from( box.parentNode.children ).indexOf( box );
+      const [ x, y ] = [ Math.trunc( index / BOARD_SIZE ), index % BOARD_SIZE ]
+
+      setPiece( [ x, y ], current_player_index )
+    })
+  }
+
   function init() {
-    gamepad.append( ...createElements( "div", BOARD_SIZE ** 2, [ "bg--white", "d-flex", "justify-center", "items-center" ] ) )
+    gamepad.append( ...createElements(
+      "div",
+      BOARD_SIZE ** 2,
+      [ "box", "bg--white", "d-flex", "justify-center", "items-center" ]
+    ))
+
+    for ( const index in PLAYERS ) {
+      rootElement.style.setProperty( `--player-${ index == 0 ? "none" : index - 1 }`, `"${ PLAYERS[ index ] }"` )
+      setTimer( PLAYERS[ index ], TOTAL_TIME )
+    }
+
+    eventInitialize()
+
+    rerender()
   }
 
   init()
