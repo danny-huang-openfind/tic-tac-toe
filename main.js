@@ -71,40 +71,74 @@ document.addEventListener( "DOMContentLoaded", () => {
   }
 
   function resetGame() {
-
-  }
-
-  function setPiece( [ x, y ], player_index ) {
-    board[ x ][ y ] = PLAYERS[ player_index ]
-    gamepad.children[ BOARD_SIZE * x + y ].dataset.player = PLAYERS[ player_index ]
-  }
-
-  function checkResult() {
+    board = new Array( BOARD_SIZE ).fill( null ).map( () => new Array( BOARD_SIZE ).fill( null ) )
+    Array.from( gamepad.children ).forEach
     
+    state = STATES.INITIAL
+    current_player_index = 0
+    ticker = null
+
+    rerender()
+
+    for ( const player in PLAYERS ) {
+      setTimer( player, TOTAL_TIME )
+    }
+  }
+
+  function setPiece( [ x, y ], player_index, target ) {
+    board[ x ][ y ] = PLAYERS[ player_index ]
+    target.dataset.player = PLAYERS[ player_index ]
+  }
+
+  function checkResult( position ) {
+    const directions = [
+      [ 0, 1 ],
+      [ 1, 1 ],
+      [ 1, 0 ],
+      [ 1, -1 ]
+    ]
+    const full = board.every( row => row.every( Boolean ) )
+    
+    let result = null ;
+    for ( let direction of directions ) {
+      result = trace( position, direction )
+
+      if ( result ) {
+        break
+      }
+    }
+
+    return { finished: !!( result || full ), winner: result ? PLAYERS[ current_player_index ] : null }
   }
   
   function trace( position, direction, count = 0 ) {
-    if ( checkLine( position, direction, current ) ) {
+    if ( checkLine( position, direction, PLAYERS[ current_player_index ] ) ) {
       return true
     }
-    if ( position.includes( 0 ) || position.includes( BOARD_SIZE - 1 ) ) {
-      if ( count > 0 ) {
+
+    let next_position = position.map( ( element, index ) => element + ( count <= 0 ? -1 : 1 ) * direction[ index ] )
+
+    if ( next_position.includes( -1 ) || next_position.includes( BOARD_SIZE ) ) {
+      if ( count == 0 ) {
+        next_position = position.map( ( element, index ) => element + direction[ index ] )
+        return trace( next_position, direction, ++count )
+      }
+      else if ( Math.abs( count ) >= BOARD_SIZE - 1 ) {
         return false
       }
       else {
-        position = position.map( ( element, index ) => element + ( -count + 1 ) * direction[ index ] )
-        return trace( position, direction, count < 0 ? 1 : --count )
+        next_position = position.map( ( element, index ) => element + ( ( -count + 1 ) * direction[ index ] ) )
+        return trace( next_position, direction, ( -count + 1 ) )
       }
     }
     else {
-      position = position.map( ( element, index ) => element + ( count > 0 ? 1 : -1 ) * direction[ index ] )
-      return trace( position, direction, count > 0 ? ++count : --count )
+      return trace( next_position, direction, count <= 0 ? --count : ++count )
     }
   }
 
   function checkLine( [ x, y ], direction, player ) {
     count = 0
-    while( count < line ) {
+    while( count < WIN_LINE_LENGTH ) {
       if ( board?.[ x ]?.[ y ] !== player ) {
         return false
       }
@@ -112,6 +146,12 @@ document.addEventListener( "DOMContentLoaded", () => {
       [ x, y ] = [ x, y ].map( ( element, index ) => element + direction[ index ] )
     }
     return true
+  }
+
+  function switchPlayer() {
+    current_player_index = getOpponentIndex( current_player_index )
+
+    rerender()
   }
 
   function countDown() {
@@ -163,13 +203,13 @@ document.addEventListener( "DOMContentLoaded", () => {
   }
 
   function setTimer( player, time ) {
-    if ( !player ) {
+    if ( !+player ) {
       return
     }
 
     const valid_time = Math.max( time, 0 )
     timer[ player ] = time
-    timer_elements[ player ].textContent = ( valid_time / MILLI_PER_SECOND ).toFixed( DECIMAL_DIGITS )
+    timer_elements[ PLAYERS[ player ] ].textContent = ( valid_time / MILLI_PER_SECOND ).toFixed( DECIMAL_DIGITS )
   }
 
   // #endregion
@@ -180,11 +220,21 @@ document.addEventListener( "DOMContentLoaded", () => {
     buttons.reset.addEventListener( "click", resetGame )
 
     gamepad.addEventListener( "click", ({ target }) => {
+      if ( target.id === "gamepad" || !timerUpdateAndCheck() ) {
+        return
+      }
+
       const box = target.closest("div")
       const index = Array.from( box.parentNode.children ).indexOf( box );
       const [ x, y ] = [ Math.trunc( index / BOARD_SIZE ), index % BOARD_SIZE ]
 
-      setPiece( [ x, y ], current_player_index )
+      setPiece( [ x, y ], current_player_index, box )
+      const { finished, winner } = checkResult( [ x, y ] )
+      if ( finished ) {
+        return declareWinner( winner )
+      }
+
+      switchPlayer()
     })
   }
 
@@ -197,7 +247,7 @@ document.addEventListener( "DOMContentLoaded", () => {
 
     for ( const index in PLAYERS ) {
       rootElement.style.setProperty( `--player-${ index == 0 ? "none" : index - 1 }`, `"${ PLAYERS[ index ] }"` )
-      setTimer( PLAYERS[ index ], TOTAL_TIME )
+      setTimer( index, TOTAL_TIME )
     }
 
     eventInitialize()

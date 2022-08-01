@@ -1,5 +1,5 @@
 /* #region Root Element */
-:root[ data-state="PLAYING" ] #gamepad > div {
+:root[ data-state="PLAYING" ] #gamepad > div:not([ data-player ]) {
   pointer-events: auto;
 }
 
@@ -81,7 +81,7 @@
   content: var( --player-now ); 
 }
 
-#gamepad > div.occupied::before {
+#gamepad > div::before {
   content: attr( data-player )
 }
 
