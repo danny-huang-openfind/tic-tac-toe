@@ -1,7 +1,7 @@
 // #region Types
 type Axis = 0 | 1 | -1
 type Direction = [ Axis, Axis ]
-type ControllerStorage<ElementType extends HTMLElement> = { [ prop: string ]: ElementType | null }
+type ControllerStorage<ElementType extends HTMLElement> = { [ prop: string ]: ElementType }
 type STATE = "INITIAL" | "PLAYING" | "FINISHED"
 //
 
@@ -21,10 +21,10 @@ document.addEventListener( "DOMContentLoaded", () => {
   // #region Get Elements' Controller
   const rootElement = document.documentElement
   const [ actions, gamepad, info ] = [ "actions", "gamepad", "info" ].map( id => document.getElementById( id ) ) as [ HTMLDivElement, HTMLDivElement, HTMLDivElement ];
-  const timer_elements: ControllerStorage<HTMLSpanElement> = PLAYERS.reduce( 
+  const timer_elements: ControllerStorage<HTMLSpanElement> = PLAYERS.slice( 1 ).reduce( 
     ( result, player, index ) => ({
       ...result,
-      [ player ]: ( info.children.namedItem("timer") as HTMLDivElement ).children[ index - 1 ]?.children[ 0 ] as HTMLSpanElement ?? null
+      [ player ]: ( info.children.namedItem("timer") as HTMLDivElement ).children[ index - 1 ]?.children[ 0 ] as HTMLSpanElement
     }),
     {}
   )
@@ -40,7 +40,7 @@ document.addEventListener( "DOMContentLoaded", () => {
   // #region Global Variables
   let timer = PLAYERS.map( () => TOTAL_TIME ) as number[]
   let board = createMappedArray( BOARD_SIZE, () => Array<string | null>( BOARD_SIZE ).fill( null ) )
-  let current_player_index = 0
+  let current_player_index: number = 0
   let state: STATE = "INITIAL"
   let ticker: number | null = null
   // #endregion
@@ -63,7 +63,7 @@ document.addEventListener( "DOMContentLoaded", () => {
   }
 
   function randomPlayer( players_count: number ) {
-    return Math.floor( Math.random() * +players_count + 1 )
+    return Math.floor( Math.random() * players_count + 1 )
   }
   // #endregion
 
@@ -92,7 +92,10 @@ document.addEventListener( "DOMContentLoaded", () => {
   }
 
   function setPiece( [ x, y ]: number[], player_index: number, target: HTMLDivElement ) {
-    board[ x! ]![ y! ] = PLAYERS[ player_index ]!
+    if ( !( x && y ) ) {
+      return
+    }
+    board[ x ]![ y ] = PLAYERS[ player_index ]!
     target.dataset["player"] = PLAYERS[ player_index ]
   }
 
