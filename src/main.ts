@@ -79,7 +79,6 @@ document.addEventListener( "DOMContentLoaded", () => {
 
   function resetGame() {
     board = new Array( BOARD_SIZE ).fill( null ).map( () => new Array<string>( BOARD_SIZE ) )
-    Array.from( gamepad.children ).forEach
     
     state = "INITIAL"
     current_player_index = 0
