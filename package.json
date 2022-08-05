@@ -2,9 +2,10 @@
   "name": "fxhomework",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
+  "main": "src/main.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/main.ts --bundle --sourcemap=both --outfile=dist/main.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,10 @@
   "bugs": {
     "url": "https://github.com/danny-huang-openfind/FxHomework/issues"
   },
-  "homepage": "https://github.com/danny-huang-openfind/FxHomework#readme"
+  "homepage": "https://github.com/danny-huang-openfind/FxHomework#readme",
+  "dependencies": {
+    "@types/lodash-es": "^4.17.6",
+    "esbuild": "^0.14.53",
+    "lodash-es": "^4.17.21"
+  }
 }

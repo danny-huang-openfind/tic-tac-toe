@@ -1,3 +1,5 @@
+import _ from "lodash-es";
+
 // #region Types
 type Axis = 0 | 1 | -1;
 type Direction = [Axis, Axis];
@@ -22,7 +24,7 @@ const PLAYERS: Readonly<string[]> = [BLANK_PLAYER, ..._PLAYERS];
 document.addEventListener("DOMContentLoaded", () => {
   // #region Get Elements' Controller
   const rootElement = document.documentElement;
-  const [actions, gamepad, info] = ["actions", "gamepad", "info"].map((id) =>
+  const [actions, gamepad, info] = _.map(["actions", "gamepad", "info"], (id) =>
     document.getElementById(id)
   ) as [HTMLDivElement, HTMLDivElement, HTMLDivElement];
   const timer_elements: ControllerStorage<HTMLSpanElement> = PLAYERS.slice(
@@ -49,8 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // #region Global Variables
   let timer = PLAYERS.map(() => TOTAL_TIME) as number[];
-  let board = createMappedArray(BOARD_SIZE, () =>
-    Array<string | null>(BOARD_SIZE).fill(null)
+  let board = _.chunk(
+    _.times<string | null>(BOARD_SIZE ** 2, _.constant(null)),
+    BOARD_SIZE
   );
   let current_player_index: number = 0;
   let state: STATE = "INITIAL";
@@ -59,7 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // #region Utilities
   function createMappedArray<T>(size: number, mapped_method: () => T): T[] {
-    return [...Array(size)].map(mapped_method);
+    // return [...Array(size)].map(mapped_method);
+    return _.map(_.times(size), mapped_method);
   }
 
   function createElements(tag: string, length: number, classes: string[] = []) {
@@ -90,12 +94,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetGame() {
-    board = new Array(BOARD_SIZE)
-      .fill(null)
-      .map(() => new Array<string | null>(BOARD_SIZE).fill(null));
-    for (const box of gamepad.children) {
+    board = _.chunk(
+      _.times<string | null>(BOARD_SIZE ** 2, _.constant(null)),
+      BOARD_SIZE
+    );
+    _.each(gamepad.children, (box) => {
       delete (box as HTMLDivElement).dataset["player"];
-    }
+    });
 
     state = "INITIAL";
     current_player_index = 0;
@@ -103,8 +108,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     rerender();
 
-    for (const player in PLAYERS) {
-      setTimer(+player, TOTAL_TIME);
+    for (const player_index in PLAYERS) {
+      setTimer(_.toNumber(player_index), TOTAL_TIME);
     }
   }
 
@@ -154,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       (element, index) => element + (count <= 0 ? -1 : 1) * direction[index]!
     ) as [number, number];
 
-    if (next_position.includes(-1) || next_position.includes(BOARD_SIZE)) {
+    if (_.some([-1, BOARD_SIZE], (limit) => _.includes(next_position, limit))) {
       if (count == 0) {
         next_position = position.map(
           (element, index) => element + direction[index]!
@@ -224,8 +229,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // #region UI rendering
 
   function rerender() {
-    buttons["start"]!.disabled = ["PLAYING", "FINISHED"].includes(state);
-    buttons["reset"]!.disabled = state === "INITIAL";
+    buttons["start"]!.disabled = _.includes(["PLAYING", "FINISHED"], state);
+    buttons["reset"]!.disabled = _.isEqual(state, "INITIAL");
     rootElement.dataset["state"] = state.toString();
     rootElement.style.setProperty(
       "--player-now",
@@ -238,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (ticker) {
       setTimer(
-        +current_player_index,
+        _.toNumber(current_player_index),
         timer[current_player_index]! - (now - ticker)
       );
     }
@@ -255,7 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setTimer(player: number, time: number) {
-    if (!+player || !["O", "X"].includes(PLAYERS[player]!)) {
+    if (!+player || !_.includes(["O", "X"], PLAYERS[player]!)) {
       return;
     }
 
@@ -270,8 +275,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // #region Initialization
   function eventInitialize() {
-    buttons["start"]!.addEventListener("click", startGame);
-    buttons["reset"]!.addEventListener("click", resetGame);
+    _.forOwn(buttons, (button, name) =>
+      button.addEventListener("click", name === "start" ? startGame : resetGame)
+    );
 
     gamepad.addEventListener("click", ({ target }) => {
       if (
@@ -311,7 +317,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `--player-${+index == 0 ? "none" : +index - 1}`,
         `"${PLAYERS[index]}"`
       );
-      setTimer(+index, TOTAL_TIME);
+      setTimer(_.toNumber(index), TOTAL_TIME);
     }
 
     eventInitialize();
