@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ) as [number, number];
 
     if (_.some([-1, BOARD_SIZE], (limit) => _.includes(next_position, limit))) {
-      if (count == 0) {
+      if (_.eq(count, 0)) {
         next_position = position.map(
           (element, index) => element + direction[index]!
         ) as [number, number];
@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ) {
     let count = 0;
     while (count < WIN_LINE_LENGTH) {
-      if (board?.[x]?.[y] !== player) {
+      if (_.isEqual(board?.[x]?.[y], player)) {
         return false;
       }
       ++count;
@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function countDown() {
-    if (state !== "PLAYING" || !timerUpdateAndCheck()) {
+    if (_.isEqual(state, "PLAYING") || !timerUpdateAndCheck()) {
       return;
     }
 
@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-    if (timer[current_player_index] === 0) {
+    if (_.isEqual(timer[current_player_index], 0)) {
       declareWinner(getOpponentIndex(current_player_index));
 
       return false;
@@ -280,12 +280,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // #region Initialization
   function eventInitialize() {
     _.forOwn(buttons, (button, name) =>
-      button.addEventListener("click", name === "start" ? startGame : resetGame)
+      button.addEventListener(
+        "click",
+        _.isEqual(name, "start") ? startGame : resetGame
+      )
     );
 
     gamepad.addEventListener("click", ({ target }) => {
       if (
-        (target as HTMLDivElement).id === "gamepad" ||
+        _.isEqual((target as HTMLDivElement).id, "gamepad") ||
         !timerUpdateAndCheck()
       ) {
         return;
@@ -318,7 +321,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     for (const index in PLAYERS) {
       rootElement.style.setProperty(
-        `--player-${_.toNumber(index) == 0 ? "none" : _.toNumber(index) - 1}`,
+        `--player-${
+          _.eq(_.toNumber(index), 0) ? "none" : _.toNumber(index) - 1
+        }`,
         `"${PLAYERS[index]}"`
       );
       setTimer(_.toNumber(index), TOTAL_TIME);
