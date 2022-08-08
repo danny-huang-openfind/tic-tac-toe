@@ -27,13 +27,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const [actions, gamepad, info] = _.map(["actions", "gamepad", "info"], (id) =>
     document.getElementById(id)
   ) as [HTMLDivElement, HTMLDivElement, HTMLDivElement];
-  const timer_elements: ControllerStorage<HTMLSpanElement> = PLAYERS.slice(
+  const timer_elements: ControllerStorage<HTMLSpanElement> = _.slice(
+    PLAYERS,
     1
   ).reduce(
     (result, player, index) => ({
       ...result,
-      [player]: info.children.namedItem("timer")?.children[index]
-        ?.children[0] as HTMLSpanElement,
+      [player]: info.children.namedItem("timer")!.children[index]!
+        .children[0] as HTMLSpanElement,
     }),
     {}
   );
@@ -78,15 +79,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return 3 - now_index;
   }
 
-  function randomPlayer(players_count: number) {
-    return Math.floor(Math.random() * players_count + 1);
+  function randomPlayer(
+    players_count: number,
+    start_index: number = 0
+  ): number {
+    return _.sample(_.range(start_index, players_count + 1))!;
   }
   // #endregion
 
   // #region Game Actions
   function startGame() {
     state = "PLAYING";
-    current_player_index = randomPlayer(PLAYERS.length - 1);
+    current_player_index = randomPlayer(PLAYERS.length - 1, 1);
 
     rerender();
 
@@ -189,10 +193,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
       }
       ++count;
-      [x, y] = [x, y].map((element, index) => element! + direction[index]!) as [
-        number,
-        number
-      ];
+      [x, y] = _.map(
+        [x, y],
+        (element, index) => element! + direction[index]!
+      ) as [number, number];
     }
     return true;
   }
@@ -243,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (ticker) {
       setTimer(
-        _.toNumber(current_player_index),
+        current_player_index,
         timer[current_player_index]! - (now - ticker)
       );
     }
@@ -260,11 +264,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setTimer(player: number, time: number) {
-    if (!+player || !_.includes(["O", "X"], PLAYERS[player]!)) {
+    if (!player || !_.includes(["O", "X"], PLAYERS[player]!)) {
       return;
     }
 
-    const valid_time = Math.max(time, 0);
+    const valid_time = _.max([time, 0])!;
     timer[player] = +time;
     timer_elements[PLAYERS[player]!]!.textContent = (
       valid_time / MILLI_PER_SECOND
@@ -288,7 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const box = (target as HTMLDivElement).closest("div") as HTMLDivElement;
-      const index = Array.from(box.parentElement?.children!).indexOf(box);
+      const index = _.values(box.parentElement!.children).indexOf(box);
       const [x, y] = [Math.trunc(index / BOARD_SIZE), index % BOARD_SIZE];
 
       setPiece([x, y], current_player_index, box);
@@ -314,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     for (const index in PLAYERS) {
       rootElement.style.setProperty(
-        `--player-${+index == 0 ? "none" : +index - 1}`,
+        `--player-${_.toNumber(index) == 0 ? "none" : _.toNumber(index) - 1}`,
         `"${PLAYERS[index]}"`
       );
       setTimer(_.toNumber(index), TOTAL_TIME);
