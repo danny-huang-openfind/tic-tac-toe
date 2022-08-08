@@ -1,19 +1,19 @@
 {
-  "name": "fxhomework",
-  "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
+  "name": "test",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/danny-huang-openfind/FxHomework.git"
+  "devDependencies": {
+    "typescript": "^4.6.4",
+    "vite": "^3.0.0"
   },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/danny-huang-openfind/FxHomework/issues"
-  },
-  "homepage": "https://github.com/danny-huang-openfind/FxHomework#readme"
+  "dependencies": {
+    "@types/lodash-es": "^4.17.6",
+    "lodash-es": "^4.17.21"
+  }
 }

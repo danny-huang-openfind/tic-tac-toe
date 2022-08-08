@@ -1,28 +1,37 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "Node",
     "strict": true,
-    "target": "ES2016",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "skipLibCheck": true,
+
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
-    "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "rootDir": "./src",
     "outDir": "./dist",
-    "sourceMap": true,
 
     "importsNotUsedAsValues": "error",
     "checkJs": true,
 
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
+  "include": ["src"],
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Strictest"
 }
