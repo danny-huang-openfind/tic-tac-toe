@@ -7,7 +7,7 @@ type ControllerStorage<ElementType extends HTMLElement> = {
   [prop: string]: ElementType;
 };
 type STATE = "INITIAL" | "PLAYING" | "FINISHED";
-//
+// #endregion
 
 // #region Contstants
 const MILLI_PER_SECOND: Readonly<number> = 1000;
@@ -27,35 +27,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const [actions, gamepad, info] = _.map(["actions", "gamepad", "info"], (id) =>
     document.getElementById(id)
   ) as [HTMLDivElement, HTMLDivElement, HTMLDivElement];
-  const timer_elements: ControllerStorage<HTMLSpanElement> = _.slice(
-    PLAYERS,
-    1
-  ).reduce(
-    (result, player, index) => ({
-      ...result,
-      [player]: info.children.namedItem("timer")!.children[index]!
-        .children[0] as HTMLSpanElement,
-    }),
+  const timer_elements: ControllerStorage<HTMLSpanElement> = _.reduce(
+    _.slice(PLAYERS, 1),
+    (result, player, index) =>
+      _.assign(result, {
+        [player]:
+          info.children.namedItem("timer")?.children[index]?.children[0],
+      }),
     {}
   );
-  const buttons: ControllerStorage<HTMLButtonElement> = [
-    "start",
-    "reset",
-  ].reduce(
-    (result, name, index) => ({
-      ...result,
-      [name]: actions.children[index],
-    }),
+  const buttons: ControllerStorage<HTMLButtonElement> = _.reduce(
+    ["start", "reset"],
+    (result, name, index) =>
+      _.assign(result, { [name]: actions.children[index] }),
     {}
   );
   // #endregion
 
   // #region Global Variables
-  let timer = PLAYERS.map(() => TOTAL_TIME) as number[];
+  let timer = _.map(PLAYERS, () => TOTAL_TIME) as number[];
   let board = _.chunk(
     _.times<string | null>(BOARD_SIZE ** 2, _.constant(null)),
     BOARD_SIZE
   );
+
   let current_player_index: number = 0;
   let state: STATE = "INITIAL";
   let ticker: number | null = null;
@@ -63,8 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // #region Utilities
   function createMappedArray<T>(size: number, mapped_method: () => T): T[] {
-    // return [...Array(size)].map(mapped_method);
-    return _.map(_.times(size), mapped_method);
+    return _.map(_.range(size), mapped_method);
   }
 
   function createElements(tag: string, length: number, classes: string[] = []) {
@@ -79,18 +73,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return 3 - now_index;
   }
 
-  function randomPlayer(
-    players_count: number,
-    start_index: number = 0
-  ): number {
-    return _.sample(_.range(start_index, players_count + 1))!;
+  function randomPlayer(players_count: number) {
+    return _.random(0, players_count - 1) + 1;
   }
   // #endregion
 
   // #region Game Actions
   function startGame() {
     state = "PLAYING";
-    current_player_index = randomPlayer(PLAYERS.length - 1, 1);
+    current_player_index = randomPlayer(PLAYERS.length - 1);
 
     rerender();
 
@@ -102,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
       _.times<string | null>(BOARD_SIZE ** 2, _.constant(null)),
       BOARD_SIZE
     );
+
     _.each(gamepad.children, (box) => {
       delete (box as HTMLDivElement).dataset["player"];
     });
@@ -112,9 +104,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     rerender();
 
-    for (const player_index in PLAYERS) {
-      setTimer(_.toNumber(player_index), TOTAL_TIME);
-    }
+    _.each(_.range(PLAYERS.length), (index) => {
+      setTimer(index, TOTAL_TIME);
+    });
   }
 
   function setPiece(
@@ -136,13 +128,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const full = board.every((row) => row.every(Boolean));
 
     let result = null;
-    for (let direction of directions) {
+    _.each(directions, (direction) => {
       result = trace(position, direction);
 
-      if (result) {
-        break;
-      }
-    }
+      return !result;
+    });
 
     return {
       finished: !!(result || full),
@@ -159,20 +149,23 @@ document.addEventListener("DOMContentLoaded", () => {
       return true;
     }
 
-    let next_position = position.map(
+    let next_position = _.map(
+      position,
       (element, index) => element + (count <= 0 ? -1 : 1) * direction[index]!
     ) as [number, number];
 
-    if (_.some([-1, BOARD_SIZE], (limit) => _.includes(next_position, limit))) {
+    if (_.some(next_position, (coord) => _.includes([-1, BOARD_SIZE], coord))) {
       if (_.eq(count, 0)) {
-        next_position = position.map(
+        next_position = _.map(
+          position,
           (element, index) => element + direction[index]!
         ) as [number, number];
         return trace(next_position, direction, ++count);
       } else if (Math.abs(count) >= BOARD_SIZE - 1) {
         return false;
       } else {
-        next_position = position.map(
+        next_position = _.map(
+          position,
           (element, index) => element + (-count + 1) * direction[index]!
         ) as [number, number];
         return trace(next_position, direction, -count + 1);
@@ -188,8 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
     player: string
   ) {
     let count = 0;
-    while (count < WIN_LINE_LENGTH) {
-      if (_.isEqual(board?.[x]?.[y], player)) {
+    while (_.inRange(count, WIN_LINE_LENGTH)) {
+      if (!_.isEqual(_.property(`[${x}][${y}]`)(board), player)) {
         return false;
       }
       ++count;
@@ -208,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function countDown() {
-    if (_.isEqual(state, "PLAYING") || !timerUpdateAndCheck()) {
+    if (!_.isEqual(state, "PLAYING") || !timerUpdateAndCheck()) {
       return;
     }
 
@@ -221,9 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     requestAnimationFrame(() => {
       setTimeout(() => {
-        const message = player
-          ? `贏家是${PLAYERS[current_player_index]}`
-          : "平手";
+        const message = player ? `贏家是${PLAYERS[player]}` : "平手";
         alert(message);
       });
     });
@@ -233,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // #region UI rendering
 
   function rerender() {
-    buttons["start"]!.disabled = _.includes(["PLAYING", "FINISHED"], state);
+    buttons["start"]!.disabled = ["PLAYING", "FINISHED"].includes(state);
     buttons["reset"]!.disabled = _.isEqual(state, "INITIAL");
     rootElement.dataset["state"] = state.toString();
     rootElement.style.setProperty(
@@ -252,8 +243,8 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-    if (_.isEqual(timer[current_player_index], 0)) {
-      declareWinner(getOpponentIndex(current_player_index));
+    if (timer[current_player_index]! <= 0) {
+      _.flow([getOpponentIndex, declareWinner])(current_player_index);
 
       return false;
     }
@@ -264,12 +255,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setTimer(player: number, time: number) {
-    if (!player || !_.includes(["O", "X"], PLAYERS[player]!)) {
+    if (!player || !["O", "X"].includes(PLAYERS[player]!)) {
       return;
     }
 
     const valid_time = _.max([time, 0])!;
-    timer[player] = +time;
+    timer[player] = time;
     timer_elements[PLAYERS[player]!]!.textContent = (
       valid_time / MILLI_PER_SECOND
     ).toFixed(DECIMAL_DIGITS);
@@ -334,7 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     rerender();
   }
 
-  init();
+  _.once(init)();
   // #endregion
 });
 // #endregion

@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "fxhomework",
   "version": "1.0.0",
   "description": "",
@@ -6,11 +7,22 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "esbuild src/main.ts --bundle --sourcemap=both --outfile=dist/main.js"
+=======
+  "name": "test",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+>>>>>>> dc42942ba41ae5a26db991c5c8708f832826d425
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/danny-huang-openfind/FxHomework.git"
+  "devDependencies": {
+    "typescript": "^4.6.4",
+    "vite": "^3.0.0"
   },
+<<<<<<< HEAD
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -20,6 +32,10 @@
   "dependencies": {
     "@types/lodash-es": "^4.17.6",
     "esbuild": "^0.14.53",
+=======
+  "dependencies": {
+    "@types/lodash-es": "^4.17.6",
+>>>>>>> dc42942ba41ae5a26db991c5c8708f832826d425
     "lodash-es": "^4.17.21"
   }
 }
