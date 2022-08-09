@@ -1,0 +1,25 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: 
+    - "master"
+  pull_request:
+    branches:
+    - "master"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - name: Setup Nodejs
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
+        cache: 'npm'
+    - name: Install Depend
+      run: npm i
+    - name: Build the project
+      run: npm run build
