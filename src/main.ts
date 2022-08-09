@@ -6,7 +6,7 @@ type Direction = [Axis, Axis];
 type ControllerStorage<ElementType extends HTMLElement> = {
   [prop: string]: ElementType;
 };
-type STATE = "INITIAL" | "PLAYING" | "FINISHED";
+type STATE = "INITIAL" | "PLAYING" | "FINISHED"
 // #endregion
 
 // #region Contstants
@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
       [1, 0],
       [1, -1],
     ];
-    const full = board.every((row) => row.every(Boolean));
+    const full = _.every(board, row => _.every( row, _.identity ));
 
     let result = null;
     _.each(directions, (direction) => {
