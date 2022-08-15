@@ -7,6 +7,8 @@ import {
   fromEvent,
   map,
   startWith,
+  Subject,
+  takeUntil,
 } from "rxjs";
 
 // #region Contstants
@@ -51,14 +53,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // #endregion
 
   // #region Observables
-  const timer$ = animationFrames().pipe(
-    filter(() => _.isEqual(state, "PLAYING"))
+  let destroyer$ = new Subject<null>();
+  let timer$ = animationFrames().pipe(
+    filter(() => _.isEqual(state, "PLAYING")),
+    takeUntil(destroyer$)
   );
 
   const renderer$ = new BehaviorSubject<{ state: STATE; player: string }>({
     state,
     player: PLAYERS[current_player_index]!,
   });
+
   // #endregion
 
   // #region Utilities
@@ -89,7 +94,11 @@ document.addEventListener("DOMContentLoaded", () => {
     current_player_index = randomPlayer(PLAYERS.length - 1);
 
     renderer$.next({ state, player: PLAYERS[current_player_index]! });
-
+    destroyer$ = new Subject<null>();
+    timer$ = animationFrames().pipe(
+      filter(() => _.isEqual(state, "PLAYING")),
+      takeUntil(destroyer$)
+    );
     // countDown();
   }
 
@@ -112,6 +121,9 @@ document.addEventListener("DOMContentLoaded", () => {
     _.each(_.range(PLAYERS.length), (index) => {
       setTimer(index, TOTAL_TIME);
     });
+
+    destroyer$.next(null);
+    destroyer$.complete();
   }
 
   function setPiece([x, y]: [number, number], player_index: number) {
@@ -205,6 +217,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function declareWinner(player?: number) {
     state = "FINISHED";
     renderer$.next({ state, player: PLAYERS[current_player_index]! });
+    destroyer$.next(null);
+    destroyer$.complete();
 
     requestAnimationFrame(() => {
       setTimeout(() => {
@@ -249,11 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // #region Initialization
   function eventInitialize() {
     fromEvent(actions, "click")
-      .pipe(
-        filter(({ target }) =>
-          _.isEqual((target as HTMLDivElement).tagName, "BUTTON")
-        )
-      )
+      .pipe(filter(({ target }) => _.isMatch(target!, { tagName: "BUTTON" })))
       .subscribe(({ target }) => {
         const index = _.values(
           (target as HTMLButtonElement).parentElement!.children
