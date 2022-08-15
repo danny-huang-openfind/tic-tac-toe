@@ -310,15 +310,15 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer$
       .pipe(startWith({ state, player: PLAYERS[current_player_index] }))
       .subscribe(({ state, player }) => {
-        (actions.children[0]! as HTMLButtonElement).disabled = [
-          "PLAYING",
-          "FINISHED",
-        ].includes(state);
+        (actions.children[0]! as HTMLButtonElement).disabled = _.includes(
+          ["PLAYING", "FINISHED"],
+          state
+        );
         (actions.children[1]! as HTMLButtonElement).disabled = _.isEqual(
           state,
           "INITIAL"
         );
-        rootElement.dataset["state"] = state.toString();
+        rootElement.dataset["state"] = _.toString(state);
         rootElement.style.setProperty("--player-now", `"${player}"`);
       });
   }
