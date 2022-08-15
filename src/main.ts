@@ -1,13 +1,13 @@
 import _ from "lodash-es";
-
-// #region Types
-type Axis = 0 | 1 | -1;
-type Direction = [Axis, Axis];
-type ControllerStorage<ElementType extends HTMLElement> = {
-  [prop: string]: ElementType;
-};
-type STATE = "INITIAL" | "PLAYING" | "FINISHED"
-// #endregion
+import type { Direction, ControllerStorage, STATE } from "./types";
+import {
+  animationFrames,
+  BehaviorSubject,
+  filter,
+  fromEvent,
+  map,
+  startWith,
+} from "rxjs";
 
 // #region Contstants
 const MILLI_PER_SECOND: Readonly<number> = 1000;
@@ -24,7 +24,7 @@ const PLAYERS: Readonly<string[]> = [BLANK_PLAYER, ..._PLAYERS];
 document.addEventListener("DOMContentLoaded", () => {
   // #region Get Elements' Controller
   const rootElement = document.documentElement;
-  const [actions, gamepad, info] = _.map(["actions", "gamepad", "info"], (id) =>
+  const [actions, gamepad] = _.map(["actions", "gamepad"], (id) =>
     document.getElementById(id)
   ) as [HTMLDivElement, HTMLDivElement, HTMLDivElement];
   const timer_elements: ControllerStorage<HTMLSpanElement> = _.reduce(
@@ -32,14 +32,8 @@ document.addEventListener("DOMContentLoaded", () => {
     (result, player, index) =>
       _.assign(result, {
         [player]:
-          info.children.namedItem("timer")?.children[index]?.children[0],
+          document.getElementById("timer")!.children[index]!.children[0],
       }),
-    {}
-  );
-  const buttons: ControllerStorage<HTMLButtonElement> = _.reduce(
-    ["start", "reset"],
-    (result, name, index) =>
-      _.assign(result, { [name]: actions.children[index] }),
     {}
   );
   // #endregion
@@ -54,6 +48,17 @@ document.addEventListener("DOMContentLoaded", () => {
   let current_player_index: number = 0;
   let state: STATE = "INITIAL";
   let ticker: number | null = null;
+  // #endregion
+
+  // #region Observables
+  const timer$ = animationFrames().pipe(
+    filter(() => _.isEqual(state, "PLAYING"))
+  );
+
+  const renderer$ = new BehaviorSubject<{ state: STATE; player: string }>({
+    state,
+    player: PLAYERS[current_player_index]!,
+  });
   // #endregion
 
   // #region Utilities
@@ -83,9 +88,9 @@ document.addEventListener("DOMContentLoaded", () => {
     state = "PLAYING";
     current_player_index = randomPlayer(PLAYERS.length - 1);
 
-    rerender();
+    renderer$.next({ state, player: PLAYERS[current_player_index]! });
 
-    countDown();
+    // countDown();
   }
 
   function resetGame() {
@@ -102,20 +107,17 @@ document.addEventListener("DOMContentLoaded", () => {
     current_player_index = 0;
     ticker = null;
 
-    rerender();
+    renderer$.next({ state, player: PLAYERS[current_player_index]! });
 
     _.each(_.range(PLAYERS.length), (index) => {
       setTimer(index, TOTAL_TIME);
     });
   }
 
-  function setPiece(
-    [x, y]: [number, number],
-    player_index: number,
-    target: HTMLDivElement
-  ) {
+  function setPiece([x, y]: [number, number], player_index: number) {
     board[x]![y] = PLAYERS[player_index]!;
-    target.dataset["player"] = PLAYERS[player_index];
+    (gamepad.children[x * BOARD_SIZE + y] as HTMLDivElement).dataset["player"] =
+      PLAYERS[player_index];
   }
 
   function checkResult(position: [x: number, y: number]) {
@@ -125,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
       [1, 0],
       [1, -1],
     ];
-    const full = _.every(board, row => _.every( row, _.identity ));
+    const full = _.every(board, (row) => _.every(row, _.identity));
 
     let result = null;
     _.each(directions, (direction) => {
@@ -197,20 +199,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function switchPlayer() {
     current_player_index = getOpponentIndex(current_player_index);
 
-    rerender();
-  }
-
-  function countDown() {
-    if (!_.isEqual(state, "PLAYING") || !timerUpdateAndCheck()) {
-      return;
-    }
-
-    requestAnimationFrame(countDown);
+    renderer$.next({ state, player: PLAYERS[current_player_index]! });
   }
 
   function declareWinner(player?: number) {
     state = "FINISHED";
-    rerender();
+    renderer$.next({ state, player: PLAYERS[current_player_index]! });
 
     requestAnimationFrame(() => {
       setTimeout(() => {
@@ -223,19 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // #region UI rendering
 
-  function rerender() {
-    buttons["start"]!.disabled = ["PLAYING", "FINISHED"].includes(state);
-    buttons["reset"]!.disabled = _.isEqual(state, "INITIAL");
-    rootElement.dataset["state"] = state.toString();
-    rootElement.style.setProperty(
-      "--player-now",
-      `"${PLAYERS[current_player_index]}"`
-    );
-  }
-
-  function timerUpdateAndCheck() {
-    const now = Date.now();
-
+  function timerUpdateAndCheck(now: number = Date.now()) {
     if (ticker) {
       setTimer(
         current_player_index,
@@ -245,17 +227,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (timer[current_player_index]! <= 0) {
       _.flow([getOpponentIndex, declareWinner])(current_player_index);
-
-      return false;
     }
 
     ticker = now;
-
-    return true;
   }
 
   function setTimer(player: number, time: number) {
-    if (!player || !["O", "X"].includes(PLAYERS[player]!)) {
+    if (!player || !_.includes(["O", "X"], PLAYERS[player]!)) {
       return;
     }
 
@@ -270,33 +248,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // #region Initialization
   function eventInitialize() {
-    _.forOwn(buttons, (button, name) =>
-      button.addEventListener(
-        "click",
-        _.isEqual(name, "start") ? startGame : resetGame
+    fromEvent(actions, "click")
+      .pipe(
+        filter(({ target }) =>
+          _.isEqual((target as HTMLDivElement).tagName, "BUTTON")
+        )
       )
-    );
+      .subscribe(({ target }) => {
+        const index = _.values(
+          (target as HTMLButtonElement).parentElement!.children
+        ).indexOf(target as HTMLButtonElement);
+        _.eq(index, 0) ? startGame() : resetGame();
+      });
 
-    gamepad.addEventListener("click", ({ target }) => {
-      if (
-        _.isEqual((target as HTMLDivElement).id, "gamepad") ||
-        !timerUpdateAndCheck()
-      ) {
-        return;
-      }
-
-      const box = (target as HTMLDivElement).closest("div") as HTMLDivElement;
-      const index = _.values(box.parentElement!.children).indexOf(box);
-      const [x, y] = [Math.trunc(index / BOARD_SIZE), index % BOARD_SIZE];
-
-      setPiece([x, y], current_player_index, box);
-      const { finished, winner } = checkResult([x, y]);
-      if (finished) {
-        return declareWinner(winner);
-      }
-
-      switchPlayer();
-    });
+    fromEvent(gamepad, "click")
+      .pipe(
+        filter(
+          ({ target }) => !_.isEqual((target as HTMLDivElement).id, "gamepad")
+        ),
+        map(({ target }) => {
+          const box = (target as HTMLDivElement).closest(
+            "div"
+          ) as HTMLDivElement;
+          const index = _.values(box.parentElement!.children).indexOf(box);
+          return [Math.trunc(index / BOARD_SIZE), index % BOARD_SIZE];
+        })
+      )
+      .subscribe(([x, y]) => {
+        setPiece([x!, y!], current_player_index);
+        const { finished, winner } = checkResult([x!, y!]);
+        finished ? declareWinner(winner) : switchPlayer();
+      });
   }
 
   function init() {
@@ -320,12 +302,28 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimer(_.toNumber(index), TOTAL_TIME);
     }
 
+    timer$.subscribe((now) => timerUpdateAndCheck(now.timestamp));
+
     eventInitialize();
 
-    rerender();
+    // rerender();
+    renderer$
+      .pipe(startWith({ state, player: PLAYERS[current_player_index] }))
+      .subscribe(({ state, player }) => {
+        (actions.children[0]! as HTMLButtonElement).disabled = [
+          "PLAYING",
+          "FINISHED",
+        ].includes(state);
+        (actions.children[1]! as HTMLButtonElement).disabled = _.isEqual(
+          state,
+          "INITIAL"
+        );
+        rootElement.dataset["state"] = state.toString();
+        rootElement.style.setProperty("--player-now", `"${player}"`);
+      });
   }
 
-  _.once(init)();
+  init();
   // #endregion
 });
 // #endregion
