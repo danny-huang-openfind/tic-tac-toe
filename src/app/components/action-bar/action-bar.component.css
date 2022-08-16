@@ -1,0 +1,23 @@
+:host {
+  @apply block mb-1;
+}
+
+.button {
+  @apply px-2 py-1 font-bold rounded text-white;
+}
+
+.button.start {
+  @apply bg-blue-400;
+}
+
+.button.start:hover {
+  @apply bg-blue-500;
+}
+
+.button.reset {
+  @apply bg-yellow-500;
+}
+
+.button.reset:hover {
+  @apply bg-yellow-600;
+}
