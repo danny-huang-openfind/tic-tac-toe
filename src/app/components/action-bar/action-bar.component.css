@@ -6,6 +6,10 @@
   @apply px-2 py-1 font-bold rounded text-white;
 }
 
+.button:disabled {
+  @apply bg-gray-400 !important;
+}
+
 .button.start {
   @apply bg-blue-400;
 }

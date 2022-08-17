@@ -1,4 +1,16 @@
 <ng-container>
-  <button class="button start">開始</button>
-  <button class="button reset ml-1">重置</button>
+  <button
+    [disabled]="isDisabled.start"
+    (click)="onStartButtonClick()"
+    class="button start"
+  >
+    開始
+  </button>
+  <button
+    [disabled]="isDisabled.reset"
+    (click)="onResetButtonClick()"
+    class="button reset ml-1"
+  >
+    重置
+  </button>
 </ng-container>

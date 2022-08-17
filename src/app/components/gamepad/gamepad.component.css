@@ -13,10 +13,5 @@
 .box {
   @apply bg-white flex justify-center items-center;
 
-  --circle: url("../../../assets/circle.svg");
   border-radius: 2px;
-}
-
-.box:hover {
-  background-image: var(--circle);
 }
