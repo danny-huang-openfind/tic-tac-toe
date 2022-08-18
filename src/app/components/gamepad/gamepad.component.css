@@ -10,8 +10,26 @@
   border-radius: 2px;
 }
 
+:host[data-state="PLAYING"] .box[data-player="0"] {
+  pointer-events: auto;
+}
+
 .box {
   @apply bg-white flex justify-center items-center;
 
   border-radius: 2px;
+  pointer-events: none;
+  cursor: pointer;
+}
+
+.box[data-player="0"]:hover {
+  background-image: var(--player-now);
+}
+
+.box[data-player="1"] {
+  background-image: var(--player-A);
+}
+
+.box[data-player="2"] {
+  background-image: var(--player-B);
 }

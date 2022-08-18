@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ApplicationRef } from '@angular/core';
 
 import { STATE, StateService } from '@services/state';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'ttt-home',
@@ -8,11 +9,59 @@ import { STATE, StateService } from '@services/state';
   styleUrls: ['./home.component.css'],
 })
 export class HomeComponent implements OnInit {
-  constructor(private stateService: StateService) {}
+  constructor(
+    private stateService: StateService,
+    private app: ApplicationRef
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    const PLAYERS = { none: '', A: 'circle', B: 'cross' };
+    const PLAYERS_VIEW = ['', 'O', 'X'];
+    const root = this.app.components[0].location.nativeElement;
+    this.stateService
+      .getState()
+      .subscribe(({ state }) => (root.dataset.state = state));
+    _.forOwn(PLAYERS, (value, key) => {
+      root.style.setProperty(
+        `--player-${key}`,
+        _.isEqual(key, 'none') ? `"${value}"` : `var(--svg-${value})`
+      );
+    });
+    _.each(PLAYERS_VIEW, (view, index) => {
+      this.stateService.setPlayerView(index, view);
+    });
 
-  onStateChange($event: { state: STATE }) {
+    this.stateService.getPlayer().subscribe(({ player }) => {
+      if (!!player) {
+        root.style.setProperty(
+          '--player-now',
+          `var( --player-${this.indexToLiteral(player)} )`
+        );
+      } else {
+        root.style.removeProperty('--player-now');
+      }
+    });
+  }
+
+  onStateChange($event: { state: STATE; data?: { player: number } }) {
     this.stateService.setState($event.state);
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if ($event.data) {
+          const message = !!$event.data.player
+            ? `贏家是${this.stateService.getPlayerView($event.data.player)}`
+            : '平手';
+          alert(message);
+        }
+      });
+    });
+  }
+
+  private indexToLiteral(index: number) {
+    if (index <= 0) {
+      return;
+    }
+    const literalStartPoint = 'A'.charCodeAt(0);
+    return String.fromCharCode(literalStartPoint + (index - 1));
   }
 }

@@ -14,6 +14,7 @@ export class StateService {
     state: 'READY',
     player: 0,
   };
+  private playerViews: string[] = [];
   private currentState$: BehaviorSubject<{ state: STATE }> =
     new BehaviorSubject({ state: this.defaults.state });
   private currentPlayer$: BehaviorSubject<{ player: number }> =
@@ -40,6 +41,14 @@ export class StateService {
 
   setPlayer(player: number) {
     this.currentPlayer$.next({ player });
+  }
+
+  setPlayerView(index: number, view: string) {
+    this.playerViews[index] = view;
+  }
+
+  getPlayerView(index: number) {
+    return this.playerViews?.[index];
   }
 
   private randomPlayer(): number {
