@@ -1,8 +1,7 @@
-<ng-container #board class="board-container">
+<div (click)="onGamepadClick($event)" class="board-container">
   <div
     class="box"
-    *ngFor="let player of storage; let index = index"
-    (click)="onGamepadClick($event, index)"
+    *ngFor="let player of storage"
     [attr.data-player]="player"
   ></div>
-</ng-container>
+</div>

@@ -1,4 +1,4 @@
-:host {
+:host .board-container {
   @apply grid bg-black mb-1;
 
   width: 150px;
