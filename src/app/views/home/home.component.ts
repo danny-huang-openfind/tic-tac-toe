@@ -16,7 +16,7 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     const PLAYERS = { none: '', A: 'circle', B: 'cross' };
-    const PLAYERS_VIEW = ['', 'O', 'X'];
+    const PLAYERS_VIEW = ['', 'Ｏ', 'Ｘ'];
     const root = this.app.components[0].location.nativeElement;
     this.stateService
       .getState()

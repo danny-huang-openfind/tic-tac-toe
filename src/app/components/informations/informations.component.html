@@ -1,3 +1,3 @@
-<div class="font-bold">現在玩家:</div>
-<div>:</div>
-<div>:</div>
+<div class="font-bold">現在玩家: {{ current_player }}</div>
+<div>{{ players[0] }}: {{ (timer[0] / MILLI_PER_SECOND).toFixed(1) }}</div>
+<div>{{ players[1] }}: {{ (timer[1] / MILLI_PER_SECOND).toFixed(1) }}</div>
