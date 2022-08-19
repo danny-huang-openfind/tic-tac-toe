@@ -101,13 +101,14 @@ export class GamepadComponent implements OnInit {
   ): boolean {
     const player = this.stateService.getPlayer().value.player;
 
-    if (this.checkLine(index, direction, player)) {
-      return true;
-    }
     const position: [number, number] = [
       Math.trunc(index / this.BOARD_SIZE),
       index % this.BOARD_SIZE,
     ];
+
+    if (this.checkLine(position, direction, player)) {
+      return true;
+    }
 
     let next_position = _.map(
       position,
@@ -141,14 +142,29 @@ export class GamepadComponent implements OnInit {
     }
   }
 
-  private checkLine(index: number, direction: Direction, player: number) {
+  private checkLine(
+    position: [number, number],
+    direction: Direction,
+    player: number
+  ) {
+    debugger;
     let count = 0;
+    let index = position[0] * this.BOARD_SIZE + position[1];
     while (_.inRange(count, this.LINE_LENGTH)) {
+      if (
+        _.some(position, (coord) => coord <= -1 || coord >= this.BOARD_SIZE)
+      ) {
+        return false;
+      }
       if (!_.isEqual(this.storage[index], player)) {
         return false;
       }
       ++count;
-      index += direction[0] * this.BOARD_SIZE + direction[1];
+      position = _.map(
+        position,
+        (element, index) => element! + direction[index]!
+      ) as [number, number];
+      index = position[0] * this.BOARD_SIZE + position[1];
     }
     return true;
   }

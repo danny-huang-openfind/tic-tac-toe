@@ -1,5 +1,5 @@
 {
-  "name": "t",
+  "name": "tick-tac-toe",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
