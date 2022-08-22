@@ -21,6 +21,8 @@ import { Direction } from './gamepad.type';
 })
 export class GamepadComponent implements AfterViewInit {
   @Output() stateChange = new EventEmitter();
+  @ViewChild('self') self!: ElementRef;
+
   public BOARD_SIZE = 3;
   public storage = _.times<number>(this.BOARD_SIZE ** 2, _.constant(0));
   private LINE_LENGTH = 3;
@@ -33,7 +35,6 @@ export class GamepadComponent implements AfterViewInit {
   // private renderer$: Observable<T>
 
   constructor(private stateService: StateService) {}
-  @ViewChild('self') self!: ElementRef;
 
   ngAfterViewInit(): void {
     this.stateService.getState().subscribe(({ state }) => {
@@ -51,8 +52,8 @@ export class GamepadComponent implements AfterViewInit {
       });
   }
 
-  onGamepadBoxClick($event: Event) {
-    const target = $event.target as HTMLElement;
+  onGamepadBoxClick() {
+    const target = this.self.nativeElement;
     if (!_.includes(target.classList, 'box')) {
       return;
     }

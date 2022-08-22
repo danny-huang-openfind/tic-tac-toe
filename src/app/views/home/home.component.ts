@@ -58,7 +58,8 @@ export class HomeComponent implements OnInit {
     if (index <= 0) {
       return;
     }
-    const literalStartPoint = 'A'.charCodeAt(0);
+    const firstAlphabet = 'A';
+    const literalStartPoint = firstAlphabet.charCodeAt(0);
     return String.fromCharCode(literalStartPoint + (index - 1));
   }
 }
