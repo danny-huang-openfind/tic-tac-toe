@@ -33,8 +33,6 @@ export class InformationsComponent implements OnInit {
       this.timer.push(this.MAX_TIME);
     });
 
-    console.log(this.timer);
-
     this.stateService
       .getState()
       .pipe(filter(({ state }) => _.includes(['READY', 'PLAYING'], state)))
@@ -68,7 +66,6 @@ export class InformationsComponent implements OnInit {
     }
     if (this.timer[currentPlayerIndex] == 0) {
       const opponentIndex = !!currentPlayerIndex ? 0 : 1;
-      console.log(opponentIndex);
       this.stateChange.emit({
         state: 'FINISHED',
         data: { player: opponentIndex + 1 },

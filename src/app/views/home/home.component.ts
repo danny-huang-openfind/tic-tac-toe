@@ -18,9 +18,6 @@ export class HomeComponent implements OnInit {
     const PLAYERS = { none: '', A: 'circle', B: 'cross' };
     const PLAYERS_VIEW = ['', 'Ｏ', 'Ｘ'];
     const root = this.app.components[0].location.nativeElement;
-    this.stateService
-      .getState()
-      .subscribe(({ state }) => (root.dataset.state = state));
     _.forOwn(PLAYERS, (value, key) => {
       root.style.setProperty(
         `--player-${key}`,

@@ -3,8 +3,9 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  OnInit,
+  AfterViewInit,
   Output,
+  ViewChild,
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -18,7 +19,7 @@ import { Direction } from './gamepad.type';
   templateUrl: './gamepad.component.html',
   styleUrls: ['./gamepad.component.css'],
 })
-export class GamepadComponent implements OnInit {
+export class GamepadComponent implements AfterViewInit {
   @Output() stateChange = new EventEmitter();
   public BOARD_SIZE = 3;
   public storage = _.times<number>(this.BOARD_SIZE ** 2, _.constant(0));
@@ -31,11 +32,13 @@ export class GamepadComponent implements OnInit {
   /* Render works will be done by css */
   // private renderer$: Observable<T>
 
-  constructor(private stateService: StateService, private self: ElementRef) {}
+  constructor(private stateService: StateService) {}
+  @ViewChild('self') self!: ElementRef;
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.stateService.getState().subscribe(({ state }) => {
       this.self.nativeElement.dataset.state = state;
+      console.log(this.self);
       if (_.eq('READY', state)) {
         this.storage = _.times<number>(this.BOARD_SIZE ** 2, _.constant(0));
       }
@@ -147,7 +150,6 @@ export class GamepadComponent implements OnInit {
     direction: Direction,
     player: number
   ) {
-    debugger;
     let count = 0;
     let index = position[0] * this.BOARD_SIZE + position[1];
     while (_.inRange(count, this.LINE_LENGTH)) {
