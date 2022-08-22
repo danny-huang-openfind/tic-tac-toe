@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { animationFrames, Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
