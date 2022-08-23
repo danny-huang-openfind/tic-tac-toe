@@ -1,17 +1,29 @@
 import * as _ from 'lodash-es';
 import { animationFrames, Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 
 import { StateService } from '@services/state';
+import { STATE } from '@type/state.type';
 
 @Component({
   selector: 'ttt-informations',
   templateUrl: './informations.component.html',
   styleUrls: ['./informations.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InformationsComponent implements OnInit {
-  @Output() stateChange = new EventEmitter();
+  @Output() stateChange = new EventEmitter<{
+    state: STATE;
+    data?: { player: number };
+  }>();
 
   players: string[] = [];
   current_player: string = '';
@@ -25,7 +37,10 @@ export class InformationsComponent implements OnInit {
     filter(() => _.eq(this.stateService.getState().value.state, 'PLAYING')),
     takeUntil(this.destroyer$)
   );
-  constructor(private stateService: StateService) {}
+  constructor(
+    private stateService: StateService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     _.forEach([1, 2], (index) => {
@@ -46,6 +61,7 @@ export class InformationsComponent implements OnInit {
           case 'PLAYING':
             this.processor$.subscribe((now) => {
               this.timerUpdateAndCheck(now.timestamp);
+              this.changeDetectorRef.markForCheck();
             });
             break;
         }

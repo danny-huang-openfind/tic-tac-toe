@@ -8,6 +8,7 @@ import { ActionBarComponent } from './components/action-bar';
 import { GamepadComponent } from './components/gamepad';
 import { InformationsComponent } from './components/informations';
 import { TestComponent } from './test/test.component';
+import { SecondPipe } from './pipes/second/second.pipe';
 
 @NgModule({
   declarations: [
@@ -17,6 +18,7 @@ import { TestComponent } from './test/test.component';
     GamepadComponent,
     InformationsComponent,
     TestComponent,
+    SecondPipe,
   ],
   imports: [BrowserModule, AppRoutingModule],
   providers: [Meta],

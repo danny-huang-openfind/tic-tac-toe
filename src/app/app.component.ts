@@ -1,15 +1,16 @@
-import { Component, OnChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Meta } from '@angular/platform-browser';
 
 @Component({
   selector: 'ttt-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent implements OnChanges {
+export class AppComponent implements OnInit {
   constructor(private meta: Meta) {}
 
-  ngOnChanges(): void {
+  ngOnInit(): void {
     this.meta.addTag({ property: 'og:title', content: '【井字遊戲】' });
     this.meta.addTag({
       property: 'og:image',

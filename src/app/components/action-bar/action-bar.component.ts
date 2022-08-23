@@ -1,23 +1,34 @@
 import * as _ from 'lodash-es';
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { StateService } from '@services/state';
+import { STATE } from '@type/state.type';
 
 @Component({
   selector: 'ttt-action-bar',
   templateUrl: './action-bar.component.html',
   styleUrls: ['./action-bar.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ActionBarComponent implements OnInit {
-  @Output() stateChange = new EventEmitter();
+  @Output() stateChange = new EventEmitter<{
+    state: STATE;
+    data?: { player: number };
+  }>();
 
   isDisabled: { start: boolean; reset: boolean } = {
     start: false,
     reset: true,
   };
-  private renderer$: Observable<{ start: boolean; reset: boolean }> =
+  public renderer$: Observable<{ start: boolean; reset: boolean }> =
     this.stateService.getState().pipe(
       map(({ state }) => ({
         start: !_.eq('READY', state),
@@ -29,11 +40,7 @@ export class ActionBarComponent implements OnInit {
 
   constructor(private stateService: StateService) {}
 
-  ngOnInit(): void {
-    this.renderer$.subscribe((visiabilty) => {
-      _.assign(this.isDisabled, visiabilty);
-    });
-  }
+  ngOnInit(): void {}
 
   onStartButtonClick() {
     this.stateChange.emit({ state: 'PLAYING' });

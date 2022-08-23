@@ -2,7 +2,7 @@ import * as _ from 'lodash-es';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-import { STATE } from './state.type';
+import { STATE } from '@type/state.type';
 
 @Injectable({
   providedIn: 'root',

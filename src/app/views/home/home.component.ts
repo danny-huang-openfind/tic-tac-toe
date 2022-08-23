@@ -1,12 +1,19 @@
-import { Component, OnInit, ApplicationRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ApplicationRef,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 
-import { STATE, StateService } from '@services/state';
+import { StateService } from '@services/state';
+import { STATE } from '@type/state.type';
 import * as _ from 'lodash-es';
 
 @Component({
   selector: 'ttt-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent implements OnInit {
   constructor(

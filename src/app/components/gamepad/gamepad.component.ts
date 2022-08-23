@@ -6,49 +6,55 @@ import {
   AfterViewInit,
   Output,
   ViewChild,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  HostBinding,
 } from '@angular/core';
-import { Subject } from 'rxjs';
-import { filter } from 'rxjs/operators';
-
 import { StateService } from '@services/state';
 
-import { Direction } from './gamepad.type';
+import { Direction } from '@type/direction.type';
+import { STATE } from '@type/state.type';
 
 @Component({
   selector: 'ttt-gamepad',
   templateUrl: './gamepad.component.html',
   styleUrls: ['./gamepad.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GamepadComponent implements AfterViewInit {
-  @Output() stateChange = new EventEmitter();
+  @HostBinding('attr.data-state') get state() {
+    return this._state;
+  }
+  @Output() stateChange = new EventEmitter<{
+    state: STATE;
+    data?: { player: number };
+  }>();
   @ViewChild('self') self!: ElementRef;
 
   public BOARD_SIZE = 3;
   public storage = _.times<number>(this.BOARD_SIZE ** 2, _.constant(0));
   private LINE_LENGTH = 3;
-  private processor$: Subject<{
-    index: number;
-    player: number;
-  }> = new Subject();
+  private _state: string | null = null;
+
+  /* Storage data change don't have to be reactive */
+  // private processor$: Subject<T>
 
   /* Render works will be done by css */
   // private renderer$: Observable<T>
 
-  constructor(private stateService: StateService) {}
+  constructor(
+    private stateService: StateService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
   ngAfterViewInit(): void {
     this.stateService.getState().subscribe(({ state }) => {
-      this.self.nativeElement.dataset.state = state;
+      this._state = state;
       if (_.eq('READY', state)) {
         this.storage = _.times<number>(this.BOARD_SIZE ** 2, _.constant(0));
+        this.changeDetectorRef.markForCheck();
       }
     });
-
-    this.processor$
-      .pipe(filter(({ index, player }) => !_.eq(this.storage[index], player)))
-      .subscribe(({ index, player }) => {
-        this.storage[index] = player;
-      });
   }
 
   onGamepadBoxClick($event: Event) {

@@ -1,13 +1,13 @@
 <ng-container>
   <button
-    [disabled]="isDisabled.start"
+    [disabled]="(renderer$ | async)?.start"
     (click)="onStartButtonClick()"
     class="button start"
   >
     開始
   </button>
   <button
-    [disabled]="isDisabled.reset"
+    [disabled]="(renderer$ | async)?.reset"
     (click)="onResetButtonClick()"
     class="button reset ml-1"
   >

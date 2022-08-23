@@ -22,7 +22,8 @@
     "paths": {
       "@services/*": ["src/app/services/*"],
       "@components/*": ["src/app/components/*"],
-      "@views/*": ["src/app/views/*"]
+      "@views/*": ["src/app/views/*"],
+      "@type/*": ["src/app/types/*"]
     }
   },
   "angularCompilerOptions": {

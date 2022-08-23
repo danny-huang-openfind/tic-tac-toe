@@ -10,7 +10,7 @@
   border-radius: 2px;
 }
 
-:host [data-state="PLAYING"] .box[data-player="0"] {
+:host[data-state="PLAYING"] .box[data-player="0"] {
   pointer-events: auto;
 }
 
