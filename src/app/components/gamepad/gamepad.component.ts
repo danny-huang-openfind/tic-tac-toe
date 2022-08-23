@@ -39,7 +39,6 @@ export class GamepadComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.stateService.getState().subscribe(({ state }) => {
       this.self.nativeElement.dataset.state = state;
-      console.log(this.self);
       if (_.eq('READY', state)) {
         this.storage = _.times<number>(this.BOARD_SIZE ** 2, _.constant(0));
       }
@@ -52,8 +51,8 @@ export class GamepadComponent implements AfterViewInit {
       });
   }
 
-  onGamepadBoxClick() {
-    const target = this.self.nativeElement;
+  onGamepadBoxClick($event: Event) {
+    const target = ($event.target as HTMLElement)!;
     if (!_.includes(target.classList, 'box')) {
       return;
     }

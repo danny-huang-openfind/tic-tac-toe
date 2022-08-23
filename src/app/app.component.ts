@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnChanges } from '@angular/core';
 import { Meta } from '@angular/platform-browser';
 
 @Component({
@@ -6,10 +6,10 @@ import { Meta } from '@angular/platform-browser';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnChanges {
   constructor(private meta: Meta) {}
 
-  ngOnInit(): void {
+  ngOnChanges(): void {
     this.meta.addTag({ property: 'og:title', content: '【井字遊戲】' });
     this.meta.addTag({
       property: 'og:image',

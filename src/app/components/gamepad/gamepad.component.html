@@ -1,4 +1,4 @@
-<div #self (click)="onGamepadBoxClick()" class="board-container">
+<div #self (click)="onGamepadBoxClick($event)" class="board-container">
   <div
     class="box"
     *ngFor="let player of storage"
