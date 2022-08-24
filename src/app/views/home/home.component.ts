@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 
 import { StateService } from '@services/state';
-import { STATE } from '@type/state.type';
+import { State } from '@type/state.type';
 import * as _ from 'lodash-es';
 
 @Component({
@@ -35,7 +35,7 @@ export class HomeComponent implements OnInit {
       this.stateService.setPlayerView(index, view);
     });
 
-    this.stateService.getPlayer().subscribe(({ player }) => {
+    this.stateService.getCurrentPlayer().subscribe(({ player }) => {
       if (!!player) {
         root.style.setProperty(
           '--player-now',
@@ -47,7 +47,7 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  onStateChange($event: { state: STATE; data?: { player: number } }) {
+  onStateChange($event: { state: State; data?: { player: number } }) {
     this.stateService.setState($event.state);
     requestAnimationFrame(() => {
       setTimeout(() => {
@@ -62,11 +62,13 @@ export class HomeComponent implements OnInit {
   }
 
   private indexToLiteral(index: number) {
+    // shift number to alphabet using
     if (index <= 0) {
       return;
     }
-    const firstAlphabet = 'A';
-    const literalStartPoint = firstAlphabet.charCodeAt(0);
-    return String.fromCharCode(literalStartPoint + (index - 1));
+    const [NUMBER_COUNT, ALPHABET_COUNT] = [10, 26];
+    return (index + NUMBER_COUNT - 1)
+      .toString(NUMBER_COUNT + ALPHABET_COUNT)
+      .toUpperCase();
   }
 }

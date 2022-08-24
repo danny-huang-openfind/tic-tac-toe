@@ -1,1 +1,1 @@
-export type STATE = 'READY' | 'PLAYING' | 'FINISHED';
+export type State = 'READY' | 'PLAYING' | 'FINISHED';

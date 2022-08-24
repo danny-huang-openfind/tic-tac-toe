@@ -2,7 +2,7 @@ import * as _ from 'lodash-es';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-import { STATE } from '@type/state.type';
+import { State } from '@type/state.type';
 
 @Injectable({
   providedIn: 'root',
@@ -10,12 +10,12 @@ import { STATE } from '@type/state.type';
 export class StateService {
   // For type check
   private readonly player_count = 2;
-  private defaults: { state: STATE; player: number } = {
+  private defaults: { state: State; player: number } = {
     state: 'READY',
     player: 0,
   };
   private playerViews: string[] = [];
-  private currentState$: BehaviorSubject<{ state: STATE }> =
+  private currentState$: BehaviorSubject<{ state: State }> =
     new BehaviorSubject({ state: this.defaults.state });
   private currentPlayer$: BehaviorSubject<{ player: number }> =
     new BehaviorSubject({ player: this.defaults.player });
@@ -24,7 +24,7 @@ export class StateService {
     return this.currentState$;
   }
 
-  setState(state: STATE) {
+  setState(state: State) {
     this.currentState$.next({ state });
     if (_.eq(state, 'READY')) {
       this.currentPlayer$.next({ player: 0 });
@@ -35,12 +35,12 @@ export class StateService {
     }
   }
 
-  getPlayer() {
-    return this.currentPlayer$;
+  setCurrentPlayer(player: number) {
+    this.currentPlayer$.next({ player });
   }
 
-  setPlayer(player: number) {
-    this.currentPlayer$.next({ player });
+  getCurrentPlayer() {
+    return this.currentPlayer$;
   }
 
   setPlayerView(index: number, view: string) {
@@ -52,6 +52,6 @@ export class StateService {
   }
 
   private randomPlayer(): number {
-    return _.random(0, this.player_count - 1) + 1;
+    return _.random(1, this.player_count);
   }
 }

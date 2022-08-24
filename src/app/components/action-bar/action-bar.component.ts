@@ -1,4 +1,3 @@
-import * as _ from 'lodash-es';
 import {
   Component,
   EventEmitter,
@@ -6,11 +5,12 @@ import {
   Output,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import * as _ from 'lodash-es';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { StateService } from '@services/state';
-import { STATE } from '@type/state.type';
+import { State } from '@type/state.type';
 
 @Component({
   selector: 'ttt-action-bar',
@@ -20,15 +20,11 @@ import { STATE } from '@type/state.type';
 })
 export class ActionBarComponent implements OnInit {
   @Output() stateChange = new EventEmitter<{
-    state: STATE;
+    state: State;
     data?: { player: number };
   }>();
 
-  isDisabled: { start: boolean; reset: boolean } = {
-    start: false,
-    reset: true,
-  };
-  public renderer$: Observable<{ start: boolean; reset: boolean }> =
+  private renderer$: Observable<{ start: boolean; reset: boolean }> =
     this.stateService.getState().pipe(
       map(({ state }) => ({
         start: !_.eq('READY', state),
@@ -48,5 +44,9 @@ export class ActionBarComponent implements OnInit {
 
   onResetButtonClick() {
     this.stateChange.emit({ state: 'READY' });
+  }
+
+  getRenderer() {
+    return this.renderer$;
   }
 }

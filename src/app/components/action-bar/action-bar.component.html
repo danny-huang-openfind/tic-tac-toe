@@ -1,16 +1,14 @@
-<ng-container>
-  <button
-    [disabled]="(renderer$ | async)?.start"
-    (click)="onStartButtonClick()"
-    class="button start"
-  >
-    開始
-  </button>
-  <button
-    [disabled]="(renderer$ | async)?.reset"
-    (click)="onResetButtonClick()"
-    class="button reset ml-1"
-  >
-    重置
-  </button>
-</ng-container>
+<button
+  [disabled]="(getRenderer() | async)!.start"
+  (click)="onStartButtonClick()"
+  class="button start"
+>
+  開始
+</button>
+<button
+  [disabled]="(getRenderer() | async)!.reset"
+  (click)="onResetButtonClick()"
+  class="button reset ml-1"
+>
+  重置
+</button>
