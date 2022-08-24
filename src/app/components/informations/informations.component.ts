@@ -1,6 +1,3 @@
-import * as _ from 'lodash-es';
-import { animationFrames, Subject } from 'rxjs';
-import { filter, pairwise, takeUntil, map } from 'rxjs/operators';
 import {
   Component,
   EventEmitter,
@@ -9,6 +6,9 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
+import { animationFrames, Subject } from 'rxjs';
+import { filter, pairwise, takeUntil, map } from 'rxjs/operators';
+import * as _ from 'lodash-es';
 
 import { StateService } from '@services/state';
 import { State } from '@type/state.type';
@@ -28,7 +28,7 @@ export class InformationsComponent implements OnInit {
   players: string[] = [];
   current_player: string = '';
   timer: number[] = [];
-  MILLI_PER_SECOND: number = 1000;
+  private readonly MILLI_PER_SECOND: number = 1000;
   private readonly MAX_TIME = 60 * this.MILLI_PER_SECOND;
 
   private destroyer$: Subject<void> = new Subject();
@@ -79,10 +79,10 @@ export class InformationsComponent implements OnInit {
       this.stateService.getCurrentPlayer().value.player;
     this.setTimer(currentPlayerIndex, this.timer[currentPlayerIndex] - elapsed);
     if (this.timer[currentPlayerIndex] == 0) {
-      const opponentIndex = !!currentPlayerIndex ? 0 : 1;
+      const opponentIndex = 3 - currentPlayerIndex;
       this.stateChange.emit({
         state: 'FINISHED',
-        data: { player: opponentIndex + 1 },
+        data: { player: opponentIndex },
       });
     }
   }

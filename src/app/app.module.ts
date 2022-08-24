@@ -10,16 +10,19 @@ import { InformationsComponent } from './components/informations';
 import { TestComponent } from './test/test.component';
 import { SecondPipe } from './pipes/second/second.pipe';
 
+const components = [
+  AppComponent,
+  HomeComponent,
+  ActionBarComponent,
+  GamepadComponent,
+  InformationsComponent,
+  TestComponent,
+];
+
+const pipes = [SecondPipe];
+
 @NgModule({
-  declarations: [
-    AppComponent,
-    HomeComponent,
-    ActionBarComponent,
-    GamepadComponent,
-    InformationsComponent,
-    TestComponent,
-    SecondPipe,
-  ],
+  declarations: [...components, ...pipes],
   imports: [BrowserModule, AppRoutingModule],
   providers: [Meta],
   bootstrap: [AppComponent],

@@ -1,5 +1,5 @@
-import * as _ from 'lodash-es';
 import { Pipe, PipeTransform } from '@angular/core';
+import * as _ from 'lodash-es';
 
 @Pipe({
   name: 'second',

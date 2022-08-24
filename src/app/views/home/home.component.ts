@@ -62,7 +62,7 @@ export class HomeComponent implements OnInit {
   }
 
   private indexToLiteral(index: number) {
-    // shift number to alphabet using
+    // shift number to alphabet
     if (index <= 0) {
       return;
     }

@@ -1,6 +1,6 @@
-import * as _ from 'lodash-es';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import * as _ from 'lodash-es';
 
 import { State } from '@type/state.type';
 

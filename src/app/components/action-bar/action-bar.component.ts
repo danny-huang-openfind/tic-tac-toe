@@ -5,9 +5,9 @@ import {
   Output,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import * as _ from 'lodash-es';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import * as _ from 'lodash-es';
 
 import { StateService } from '@services/state';
 import { State } from '@type/state.type';
