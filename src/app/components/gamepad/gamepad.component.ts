@@ -15,7 +15,7 @@ import { Direction } from '@type/direction.type';
 import { State } from '@type/state.type';
 
 type Result =
-  | { finished: true; winner: number }
+  | { finished: true; winner: number | undefined }
   | { finished: false; winner: undefined };
 
 @Component({
@@ -25,17 +25,14 @@ type Result =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GamepadComponent implements AfterViewInit {
-  @HostBinding('attr.data-state') get state() {
-    return this._state;
-  }
   @Output() stateChange = new EventEmitter<{
     state: State;
     data?: { player: number };
   }>();
 
+  @HostBinding('attr.data-state') private _state: string | null = null;
   private readonly BOARD_SIZE = 3;
   private readonly LINE_LENGTH = 3;
-  private _state: string | null = null;
   public storage = _.fill<number>(Array(this.BOARD_SIZE ** 2), 0);
 
   /* Storage data change don't have to be reactive */
@@ -82,11 +79,7 @@ export class GamepadComponent implements AfterViewInit {
     this.stateService.setCurrentPlayer(nextPlayer);
   }
 
-  private checkResult(index: number, player: number): Result;
-  private checkResult(
-    index: number,
-    player: number
-  ): { finished: boolean; winner?: number } {
+  private checkResult(index: number, player: number): Result {
     const directions: Direction[] = [
       [0, 1],
       [1, 1],
@@ -102,10 +95,17 @@ export class GamepadComponent implements AfterViewInit {
       return !result;
     });
 
-    return {
-      finished: !!(result || full),
-      winner: result ? player : undefined,
-    };
+    if (result || full) {
+      return {
+        finished: true,
+        winner: result ? player : undefined,
+      };
+    } else {
+      return {
+        finished: false,
+        winner: undefined,
+      };
+    }
   }
 
   private trace(
